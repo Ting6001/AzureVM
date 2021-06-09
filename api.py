@@ -38,7 +38,7 @@ def Getworkrate():
     elif 'div' in request.args:
         div_pa = request.args['div']
         return {'div':div_pa,
-                'data':dic[div_pa]}
+                'data':dic.get(div_pa, {})}
     else:
         return "Error: No storeid provided. Please specify a storeid."
 
