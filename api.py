@@ -6,6 +6,9 @@ app.config['DEBUG'] = True
 
 @app.route('/', methods=['GET'])
 def Home():
+    if 'name' in request.args:
+        name = request.args['name']
+        return "Hello {}!".format(name)
     return "<h1> Hello Flask!</h1>"
 
 @app.route('/api', methods=['GET'])
