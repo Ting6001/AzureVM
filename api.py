@@ -9,7 +9,7 @@ def Home():
     if 'name' in request.args:
         name = request.args['name']
         return "Hello {}!".format(name)
-    elif 'div' in request.args::
+    elif 'div' in request.args:
         dic = {'230000':[], '23R000':[]}
         
         dic_DivInfo = { '230000':{  'DEP':['230220', '230R30'],
