@@ -1,8 +1,10 @@
 from flask import Flask, request
+from werkzeug.contrib.fixers import ProxyFix # new
 import random
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
+app.wsgi_app = ProxyFix(app.wsgi_app) # new
 
 @app.route('/', methods=['GET'])
 def Home():
