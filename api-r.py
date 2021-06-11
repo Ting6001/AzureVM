@@ -48,7 +48,8 @@ class User (Resource):
     parser = reqparse.RequestParser()
     parser.add_argument('email', required=True, help='Email is required')
     parser.add_argument('password', required=True, help='Password is required')
-
+    # parser = parser.add_argument('lst', type=str, location='json', action="append")
+    parser = parser.add_argument('lst_dic', type=dict, location='json', action="append")
     def get(self, name):
         find = [item for item in users if item['name'] == name]
         if len(find) == 0:
@@ -67,17 +68,26 @@ class User (Resource):
 
     def post(self, name): # create
         arg = self.parser.parse_args()
-        user = {
-            'name': name,
-            'email': arg['email'],
-            'password': arg['password']
+        print(arg)
+        
+        for i in arg['lst_dic']:
+            print(type(i),i)
+        # user = {
+        #     'name': name,
+        #     'email': arg['email'],
+        #     'password': arg['password']
+        # }
+        # global users
+        # users.append(user)
+
+        return{
+            'message': 'Insert user success'
         }
-        global users
-        users.append(user)
-        return {
-            'message': 'Insert user success',
-            'user': user
-        }
+
+        # return {
+        #     'message': 'Insert user success',
+        #     'user': user
+        # }
 
     def put(self, name): # update
         arg = self.parser.parse_args()
