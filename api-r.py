@@ -11,29 +11,29 @@ users = [{
     'name': 'kirai',
 }]
 
-class User (Resource):
+class WorkRate (Resource):
     parser = reqparse.RequestParser()
     # parser.add_argument('email', required=True, help='Email is required')
     # parser.add_argument('password', required=True, help='Password is required')
     # parser = parser.add_argument('lst', type=str, location='json', action="append")
     parser = parser.add_argument('data', type=dict, location='json', action="append")
-    def get(self, name):
-        find = [item for item in users if item['name'] == name]
-        if len(find) == 0:
-            return {
-                'message': 'username not exist!'
-            }, 403
-        user = find[0]
-        if not user:
-            return {
-                'message': 'username not exist!'
-            }, 403
-        return {
-            'message': '',
-            'user': user
-        }
+    # def get(self, name):
+    #     find = [item for item in users if item['name'] == name]
+    #     if len(find) == 0:
+    #         return {
+    #             'message': 'username not exist!'
+    #         }, 403
+    #     user = find[0]
+    #     if not user:
+    #         return {
+    #             'message': 'username not exist!'
+    #         }, 403
+    #     return {
+    #         'message': '',
+    #         'user': user
+    #     }
 
-    def post(self, name): # create
+    def post(self): # create
         arg = self.parser.parse_args()
         # print(arg)
         set_dep = set()
@@ -82,7 +82,8 @@ class User (Resource):
     #         'user': user
     #     }
 
-api.add_resource(User, '/user/<string:name>')
+# api.add_resource(User, '/user/<string:name>')
+api.add_resource(WorkRate, '/workrate/')
 class Users(Resource):
     def get(self):
         return {
