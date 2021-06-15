@@ -13,40 +13,31 @@ users = [{
 
 class User (Resource):
     parser = reqparse.RequestParser()
-    parser.add_argument('email', required=True, help='Email is required')
-    parser.add_argument('password', required=True, help='Password is required')
+    # parser.add_argument('email', required=True, help='Email is required')
+    # parser.add_argument('password', required=True, help='Password is required')
     # parser = parser.add_argument('lst', type=str, location='json', action="append")
     parser = parser.add_argument('lst_dic', type=dict, location='json', action="append")
     def get(self, name):
-        arg = self.parser.parse_args()
-        print(arg)
-        
-        for i in arg['lst_dic']:
-            print(type(i),i)
-
-        return{
-            'message': 'Insert user success'
+        find = [item for item in users if item['name'] == name]
+        if len(find) == 0:
+            return {
+                'message': 'username not exist!'
+            }, 403
+        user = find[0]
+        if not user:
+            return {
+                'message': 'username not exist!'
+            }, 403
+        return {
+            'message': '',
+            'user': user
         }
-        # find = [item for item in users if item['name'] == name]
-        # if len(find) == 0:
-        #     return {
-        #         'message': 'username not exist!'
-        #     }, 403
-        # user = find[0]
-        # if not user:
-        #     return {
-        #         'message': 'username not exist!'
-        #     }, 403
-        # return {
-        #     'message': '',
-        #     'user': user
-        # }
 
     def post(self, name): # create
         arg = self.parser.parse_args()
         print(arg)
         
-        for i in arg['lst_dic']:
+        for item in arg['lst_dic']:
             print(type(i),i)
 
         return{
