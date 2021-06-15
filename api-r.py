@@ -7,39 +7,6 @@ import random
 app = Flask(__name__)
 api = Api(app)
 
-todos = {}
-
-class HelloWorld(Resource):
-    def get(self):
-        return {'hello': 'world'}
-
-api.add_resource(HelloWorld, '/')
-class TodoSimple(Resource):
-    def get(self, todo_id):
-        return {todo_id:todos[todo_id]}
-    def put(self, todo_id):
-        todos[todo_id] = request.form['data']
-        return {todo_id:todos[todo_id]}
-# api.add_resource(TodoSimple, '/<string:todo_id>')
-
-class Todo1(Resource):
-    def get(self):
-        # 默认返回200
-        return {'task': 'Hello world'}
-
-class Todo2(Resource):
-    def get(self):
-        # 将响应码设为201
-        return {'task': 'Hello world'}, 201
-
-class Todo3(Resource):
-    def get(self):
-        # 将响应码设置为201,并返回自定义头
-        return {'task': 'Hello world'}, 201, {'Etag': 'some-opaque-string'}
-
-# api.add_resource(Todo1, '/t1')
-# api.add_resource(Todo2, '/t2')
-# api.add_resource(Todo3, '/t3')
 users = [{
     'name': 'kirai',
 }]
@@ -51,20 +18,29 @@ class User (Resource):
     # parser = parser.add_argument('lst', type=str, location='json', action="append")
     parser = parser.add_argument('lst_dic', type=dict, location='json', action="append")
     def get(self, name):
-        find = [item for item in users if item['name'] == name]
-        if len(find) == 0:
-            return {
-                'message': 'username not exist!'
-            }, 403
-        user = find[0]
-        if not user:
-            return {
-                'message': 'username not exist!'
-            }, 403
-        return {
-            'message': '',
-            'user': user
+        arg = self.parser.parse_args()
+        print(arg)
+        
+        for i in arg['lst_dic']:
+            print(type(i),i)
+
+        return{
+            'message': 'Insert user success'
         }
+        # find = [item for item in users if item['name'] == name]
+        # if len(find) == 0:
+        #     return {
+        #         'message': 'username not exist!'
+        #     }, 403
+        # user = find[0]
+        # if not user:
+        #     return {
+        #         'message': 'username not exist!'
+        #     }, 403
+        # return {
+        #     'message': '',
+        #     'user': user
+        # }
 
     def post(self, name): # create
         arg = self.parser.parse_args()
@@ -72,44 +48,26 @@ class User (Resource):
         
         for i in arg['lst_dic']:
             print(type(i),i)
-        # user = {
-        #     'name': name,
-        #     'email': arg['email'],
-        #     'password': arg['password']
-        # }
-        # global users
-        # users.append(user)
 
         return{
             'message': 'Insert user success'
         }
 
-        # return {
-        #     'message': 'Insert user success',
-        #     'user': user
-        # }
+    # def put(self, name): # update
+    #     arg = self.parser.parse_args()
+    #     find = [item for item in users if item['name'] == name]
+    #     if len(find) == 0:
+    #         return {
+    #             'message': 'username not exist!'
+    #         }, 403
+    #     user = find[0]
+    #     user['email'] = arg['email']
+    #     user['password'] = arg['password']
+    #     return {
+    #         'message': 'Update user success',
+    #         'user': user
+    #     }
 
-    def put(self, name): # update
-        arg = self.parser.parse_args()
-        find = [item for item in users if item['name'] == name]
-        if len(find) == 0:
-            return {
-                'message': 'username not exist!'
-            }, 403
-        user = find[0]
-        user['email'] = arg['email']
-        user['password'] = arg['password']
-        return {
-            'message': 'Update user success',
-            'user': user
-        }
-
-    def delete(self, name):
-        global users
-        users = [item for item in users if item['name'] != name]
-        return {
-            'message': 'Delete done!'
-        }
 api.add_resource(User, '/user/<string:name>')
 class Users(Resource):
     def get(self):
