@@ -3,35 +3,15 @@ from flask_restful import Resource, Api,reqparse
 # from werkzeug.contrib.fixers import ProxyFix # new
 import random
 
-
 app = Flask(__name__)
+app.config['DEBUG'] = True
 api = Api(app)
-
-users = [{
-    'name': 'kirai',
-}]
 
 class WorkRate (Resource):
     parser = reqparse.RequestParser()
     # parser.add_argument('email', required=True, help='Email is required')
-    # parser.add_argument('password', required=True, help='Password is required')
     # parser = parser.add_argument('lst', type=str, location='json', action="append")
-    parser = parser.add_argument('data', type=dict, location='json', action="append")
-    # def get(self, name):
-    #     find = [item for item in users if item['name'] == name]
-    #     if len(find) == 0:
-    #         return {
-    #             'message': 'username not exist!'
-    #         }, 403
-    #     user = find[0]
-    #     if not user:
-    #         return {
-    #             'message': 'username not exist!'
-    #         }, 403
-    #     return {
-    #         'message': '',
-    #         'user': user
-    #     }
+    parser = parser.add_argument('data', type=dict, location='json', action="append", help='data dict is required')
 
     def post(self): # create
         arg = self.parser.parse_args()
@@ -68,32 +48,12 @@ class WorkRate (Resource):
 
         return {'data':lst_return}
 
-    # def put(self, name): # update
-    #     arg = self.parser.parse_args()
-    #     find = [item for item in users if item['name'] == name]
-    #     if len(find) == 0:
-    #         return {
-    #             'message': 'username not exist!'
-    #         }, 403
-    #     user = find[0]
-    #     user['email'] = arg['email']
-    #     user['password'] = arg['password']
-    #     return {
-    #         'message': 'Update user success',
-    #         'user': user
-    #     }
-
 # api.add_resource(User, '/user/<string:name>')
 api.add_resource(WorkRate, '/workrate/')
-class Users(Resource):
-    def get(self):
-        return {
-            'message': '',
-            'users': users
-        }
-api.add_resource(Users, '/users/')
+
 if __name__ == '__main__':
-    app.run(debug=True) 
+    app.run(debug=True, host='0.0.0.0') 
+    
 # ===================== 原本 Flask =====================
 # app = Flask(__name__)
 # app.config['DEBUG'] = True
