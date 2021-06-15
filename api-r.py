@@ -40,8 +40,9 @@ class WorkRate (Resource):
         set_sub = set()
 
         for item in arg['data']:
-            set_dep.add(item['deptid'])
-            set_sub.add(item['sub_job_family'])
+            if item['HC'] > 0:
+                set_dep.add(item['deptid'])
+                set_sub.add(item['sub_job_family'])
         div = arg['data'][0]['div']
         print('div:', div)
         print('dep:', set_dep)
