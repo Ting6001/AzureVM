@@ -12,15 +12,19 @@ class WorkRate (Resource):
     # parser.add_argument('email', required=True, help='Email is required')
     # parser = parser.add_argument('lst', type=str, location='json', action="append")
     parser = parser.add_argument('div', type=str, required=True,  help='div is required')
-    parser = parser.add_argument('data', type=dict, location='json', action="append", help='data dict is required')
+    parser = parser.add_argument('data_Prj', type=dict, location='json', action="append", help='data Project info is required')
+    parser = parser.add_argument('data_HC', type=dict, location='json', action="append", help='data Hc info is required')
 
     def post(self): # create
         arg = self.parser.parse_args()
         print(arg)
         set_dep = set()
         set_sub = set()
-        if arg['data']:
-            for item in arg['data']:
+        if arg['data_Prj']:
+            for item in arg['data_Prj']:
+                print(item)
+        if arg['data_HC']:
+            for item in arg['data_HC']:
                 if item['HC'] > 0:
                     set_dep.add(item['deptid'])
                     set_sub.add(item['sub_job_family'])
