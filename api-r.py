@@ -38,7 +38,7 @@ class User (Resource):
         print(arg)
         
         for item in arg['data']:
-            print(type(i),i)
+            print(type(item),item)
 
         return{
             'message': 'Insert user success'
