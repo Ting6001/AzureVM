@@ -35,34 +35,37 @@ class User (Resource):
 
     def post(self, name): # create
         arg = self.parser.parse_args()
-        print(arg)
-        
+        # print(arg)
+        set_dep = set()
+        set_sub = set()
+
         for item in arg['data']:
-            print(type(item),item)
+            set_dep.add(item['deptid'])
+            set_sub.add(item['sub_job_family'])
+        div = arg['data'][0]['div']
+        print('div:', div)
+        print('dep:', set_dep)
+        print('sub:', set_sub)
 
-        dic = {'230000':[], '23R000':[]}
-            
-        dic_DivInfo = { '230000':{  'DEP':['230220', '230R30'],
-                                    'SUB':['ME']
-                                }, 
-                        '23R000':{  'DEP':['23R000', '23R200', '23R300'],
-                                    'SUB':['ME', 'HW']
-                            }}
-        for div, data in dic_DivInfo.items():
-            for key, lst in data.items():
-                for item in lst:
-                    print(div, key, item)
-                    dic_tmp = {}
-                    dic_tmp['div'] = div
-                    dic_tmp['type'] = key
-                    dic_tmp['title'] = item
-                    dic_tmp['HC'] = 0
-                    for i in range(1,4):
-                        dic_tmp['b_'+str(i)] = round(random.uniform(0.8, 1.3),1)
-                        dic_tmp['a_'+str(i)] = round(random.uniform(0.8, 1.3),1)  
-                    dic[div].append(dic_tmp)  
+        lst_return = []    
+        dic_info = {'DEP':set_dep,
+                    'SUB':set_sub
+                    }
+                    
+        for key, lst in dic_info.items():
+            for item in lst:
+                print(div, key, item)
+                dic_tmp = {}
+                dic_tmp['div'] = div
+                dic_tmp['type'] = key
+                dic_tmp['title'] = item
+                dic_tmp['HC'] = 0
+                for i in range(1,4): # b_1, b_2, b_3, a_1, a_2, a_3
+                    dic_tmp['b_'+str(i)] = round(random.uniform(0.8, 1.3),1)
+                    dic_tmp['a_'+str(i)] = round(random.uniform(0.8, 1.3),1)  
+                lst_return.append(dic_tmp)  
 
-        return {'data':dic.get('230000', {})}
+        return {'data':lst_return}
 
     # def put(self, name): # update
     #     arg = self.parser.parse_args()
