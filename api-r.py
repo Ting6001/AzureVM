@@ -16,7 +16,7 @@ class User (Resource):
     # parser.add_argument('email', required=True, help='Email is required')
     # parser.add_argument('password', required=True, help='Password is required')
     # parser = parser.add_argument('lst', type=str, location='json', action="append")
-    parser = parser.add_argument('lst_dic', type=dict, location='json', action="append")
+    parser = parser.add_argument('data', type=dict, location='json', action="append")
     def get(self, name):
         find = [item for item in users if item['name'] == name]
         if len(find) == 0:
@@ -37,7 +37,7 @@ class User (Resource):
         arg = self.parser.parse_args()
         print(arg)
         
-        for item in arg['lst_dic']:
+        for item in arg['data']:
             print(type(i),i)
 
         return{
