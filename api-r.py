@@ -11,19 +11,20 @@ class WorkRate (Resource):
     parser = reqparse.RequestParser()
     # parser.add_argument('email', required=True, help='Email is required')
     # parser = parser.add_argument('lst', type=str, location='json', action="append")
+    parser = parser.add_argument('div', type=str, required=True,  help='div is required')
     parser = parser.add_argument('data', type=dict, location='json', action="append", help='data dict is required')
 
     def post(self): # create
         arg = self.parser.parse_args()
-        # print(arg)
+        print(arg)
         set_dep = set()
         set_sub = set()
-
+        print('@', type(arg['data']), arg['data'])
         for item in arg['data']:
             if item['HC'] > 0:
                 set_dep.add(item['deptid'])
                 set_sub.add(item['sub_job_family'])
-        div = arg['data'][0]['div']
+        div = arg['div']
         print('div:', div)
         print('dep:', set_dep)
         print('sub:', set_sub)
@@ -53,7 +54,7 @@ api.add_resource(WorkRate, '/workrate/')
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0') 
-    
+
 # ===================== 原本 Flask =====================
 # app = Flask(__name__)
 # app.config['DEBUG'] = True
