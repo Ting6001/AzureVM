@@ -1,2 +1,4 @@
 flask
 flask_restful
+rpy2
+pandas
