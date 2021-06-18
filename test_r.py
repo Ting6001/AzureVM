@@ -17,16 +17,16 @@ df_HC = pd.read_csv("./data/df_HC.csv")
 div = "230000"
 print(df_prj)
 print(df_HC)
-print(df_prj.isna())
-print(df_HC.isna())
+print(df_prj.dtypes)
+print(df_HC.dtypes)
 print('===============================================')
 # pandas DataFrame去除na，有na值的話，直接轉換會error
 df_prj.fillna("", inplace=True)
 df_HC = df_HC.iloc[:,:-2]
 print(df_prj)
 print(df_HC)
-print(df_prj.isna())
-print(df_HC.isna())
+print(df_prj.dtypes)
+print(df_HC.dtypes)
 # ================================
 # === 將 Pandas.df 轉換成 R df ===
 # ================================

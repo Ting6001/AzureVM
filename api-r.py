@@ -45,16 +45,16 @@ class WorkRate (Resource):
         # df = pd.read_excel("./data/powerapp_df.xlsx")
         print(df_prj)
         print(df_HC)
-        print(df_prj.isna())
-        print(df_HC.isna())
+        print(df_prj.dtypes)
+        print(df_HC.dtypes)
         print('===============================================')
         df_prj.fillna("", inplace=True)
         df_HC = df_HC.drop(['savetime', 'UserId'], axis=1)
 
         print(df_prj)
         print(df_HC)
-        print(df_prj.isna())
-        print(df_HC.isna())
+        print(df_prj.dtypes)
+        print(df_HC.dtypes)
 
         # === 將 Pandas.df 轉換成 R df ===
         with localconverter(robjects.default_converter + pandas2ri.converter):
