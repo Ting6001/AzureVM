@@ -15,11 +15,18 @@ function_r = robjects.globalenv['hr_dept']
 df_prj = pd.read_csv("./data/df_prj.csv")
 df_HC = pd.read_csv("./data/df_HC.csv")
 div = "230000"
-
+print(df_prj)
+print(df_HC)
+print(df_prj.isna())
+print(df_HC.isna())
+print('===============================================')
 # pandas DataFrame去除na，有na值的話，直接轉換會error
 df_prj.fillna("", inplace=True)
 df_HC = df_HC.iloc[:,:-2]
-
+print(df_prj)
+print(df_HC)
+print(df_prj.isna())
+print(df_HC.isna())
 # ================================
 # === 將 Pandas.df 轉換成 R df ===
 # ================================

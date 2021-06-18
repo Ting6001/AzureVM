@@ -43,13 +43,18 @@ class WorkRate (Resource):
 
         # pandas DataFrame去除na，有na值的話，直接轉換會error
         # df = pd.read_excel("./data/powerapp_df.xlsx")
+        print(df_prj)
+        print(df_HC)
+        print(df_prj.isna())
+        print(df_HC.isna())
+        print('===============================================')
         df_prj.fillna("", inplace=True)
         df_HC = df_HC.drop(['savetime', 'UserId'], axis=1)
-        print(df_prj.isna())
+
         print(df_prj)
-        print('@@@@@@@@')
-        print(df_HC.isna())
         print(df_HC)
+        print(df_prj.isna())
+        print(df_HC.isna())
 
         # === 將 Pandas.df 轉換成 R df ===
         with localconverter(robjects.default_converter + pandas2ri.converter):
