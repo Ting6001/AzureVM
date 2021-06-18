@@ -67,8 +67,10 @@ class WorkRate (Resource):
         # === 將 R df 轉換成  Pandas.df ===
         with localconverter(robjects.default_converter + pandas2ri.converter):
             df_result = robjects.conversion.rpy2py(df_result_r)        
-        
+        print('======== Function return ==========')
+        print(df_result)
         dic_result = df_result.to_dict('records')
+        print(dic_result)
         return dic_result
 
         ##############################################################################################
