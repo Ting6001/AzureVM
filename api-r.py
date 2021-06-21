@@ -52,7 +52,11 @@ class WorkRate (Resource):
         df_HC = df_HC.drop(['savetime', 'UserId'], axis=1)
 
         print(df_prj)
+        print(df_prj.isna())
         print(df_HC)
+        print(df_HC.isna())
+        df_prj = df_prj.astype({'project_code':object, 'project_code_old':object})
+        df_HC = df_HC.astype({'div':object, 'deptid':object, 'project_code':object})
         print(df_prj.dtypes)
         print(df_HC.dtypes)
 
