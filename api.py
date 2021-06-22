@@ -28,7 +28,6 @@ class WorkRate (Resource):
         set_sub = set()
         df_prj = pd.DataFrame()
         df_HC = pd.DataFrame()
-
         div = arg['div']
         if arg['data_Prj']:
             df_prj = pd.DataFrame(arg['data_Prj'])
@@ -49,8 +48,19 @@ class WorkRate (Resource):
         dic_info = {'DEP':set_dep,
                     'SUB':set_sub
                     }
+        div_data = {'230000':{'DEP':["230R20","230R30","230110","230210","230220","230310","230320","230350",],
+                        'SUB':["RH", "ME"]},
+                    '23D000':{'DEP':["23D100","23D200","23D300","23D500","23D600"],
+                        'SUB':["AR", "HW", "OP", "RF", "RH"]},
+                    '23M000':{'DEP':["23M000","23M100","23M200","23M300","23M500","23M600"],
+                        'SUB':["ME"]},
+                    '23N000':{'DEP':["23N100","23N200","23N500"],
+                        'SUB':["ME"]},
+                    '23R000':{'DEP':["23R200","23R300"],
+                        'SUB':["HW", "ME", "RH"]}
+                    }
                     
-        for key, lst in dic_info.items():
+        for key, lst in div_data[div].items():
             for item in lst:
                 print(div, key, item)
                 dic_tmp = {}
