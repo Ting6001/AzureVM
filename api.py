@@ -23,6 +23,7 @@ class WorkRate (Resource):
 
     def post(self): # create
         arg = self.parser.parse_args()
+        print(arg)
         # print(arg)     
         set_dep = set()
         set_sub = set()
