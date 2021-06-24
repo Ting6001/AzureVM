@@ -12,7 +12,8 @@ server = 'sqlserver-mia.database.windows.net'
 database = 'DB-mia' 
 username = 'admia' 
 password = 'Mia01@wistron' 
-driver = '{SQL Server Native Client 11.0}'
+# driver = '{SQL Server Native Client 11.0}'
+driver = '{ODBC Driver 17 for SQL Server}'
 cnxn = pyodbc.connect('DRIVER='+driver+';SERVER='+server+';DATABASE='+database+';UID='+username+';PWD='+ password)
 cursor = cnxn.cursor()
 
