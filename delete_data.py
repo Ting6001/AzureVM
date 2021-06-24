@@ -8,12 +8,16 @@ except ImportError:
     import pyodbc
  
 
+drivers = [item for item in pyodbc.drivers()]
+driver = drivers[-1]
+print("driver:{}".format(driver))
+
 server = 'sqlserver-mia.database.windows.net' 
 database = 'DB-mia' 
 username = 'admia' 
 password = 'Mia01@wistron' 
 # driver = '{SQL Server Native Client 11.0}'
-driver = '{ODBC Driver 17 for SQL Server}'
+# driver = '{ODBC Driver 17 for SQL Server}'
 cnxn = pyodbc.connect('DRIVER='+driver+';SERVER='+server+';DATABASE='+database+';UID='+username+';PWD='+ password)
 cursor = cnxn.cursor()
 
