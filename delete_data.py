@@ -9,6 +9,7 @@ except ImportError:
  
 
 drivers = [item for item in pyodbc.drivers()]
+print(drivers)
 driver = drivers[-1]
 print("driver:{}".format(driver))
 
