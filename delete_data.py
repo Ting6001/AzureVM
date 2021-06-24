@@ -1,3 +1,12 @@
+import os
+def install_function():
+    os.system('sudo curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -')
+    os.system('sudo curl https://packages.microsoft.com/config/ubuntu/18.04/prod.list > /etc/apt/sources.list.d/mssql-release.list')
+    os.system('sudo apt-get update')
+    os.system('sudo ACCEPT_EULA=Y apt-get install -y msodbcsql17')
+
+install_function()
+
 try:
     import pyodbc
     print('Find module: pyodbc')
