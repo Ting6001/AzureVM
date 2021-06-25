@@ -55,13 +55,16 @@ class WorkRate (Resource):
         print(df_HC.dtypes)
 
         # === 將 Pandas.df 轉換成 R df ===
+        print('==== Transfer Pandas.df to R.df ====')
         with localconverter(robjects.default_converter + pandas2ri.converter):
             df_prj_r = robjects.conversion.py2rpy(df_prj)
             df_HC_r = robjects.conversion.py2rpy(df_HC)
             # df_r = robjects.conversion.py2rpy(df)
         # === 呼叫 R Function， return R df ===
+        print('==== Before R Functioin ====')
         df_result_r = function_r(df_prj_r, df_HC_r, div)
 
+        print('==== Transfer R.df to Pandas.df ====')
         # === 將 R df 轉換成  Pandas.df ===
         with localconverter(robjects.default_converter + pandas2ri.converter):
             df_result = robjects.conversion.rpy2py(df_result_r)        
