@@ -49,7 +49,7 @@ class WorkRate (Resource):
         print(df_HC.dtypes)
         print('===============================================')
         df_prj.fillna("", inplace=True)
-        df_HC = df_HC.drop(['savetime', 'user_id'], axis=1)
+        df_HC = df_HC.drop(['save_time', 'user_id'], axis=1)
 
         print(df_prj)
         print(df_prj.isna())
