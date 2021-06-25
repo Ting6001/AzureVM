@@ -1,6 +1,6 @@
 HC,Serial,div,deptid,project_code,project_name,project_type,sub_job_family,savetime,UserId
-1,334,230000,230220,1,New Project A,new,ME,2020-05-17,
-2,334,230000,230222,1,New Project A,new,ME,,
-2,334,230000,230220,1,New Project A,new,RE,,
-0,334,230000,230222,1,New Project A,new,RE,,
-3,334,230000,230222,1,Future Project,new,ME,,
+1,334,230000,230R30,1,New Project A,new,ME,2021/6/24,
+2,334,230000,230R30,1,New Project A,new,ME,,
+2,334,230000,230R20,1,New Project A,new,RH,,
+0,334,230000,230R30,1,New Project A,new,RH,,
+3,334,230000,230R30,1,Future Project,new,ME,,

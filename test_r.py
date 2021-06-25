@@ -4,7 +4,7 @@ from rpy2.robjects import pandas2ri
 from rpy2.robjects.conversion import localconverter
 
 # Defining the R script and loading the instance in Python
-robjects.r.source("./powerApp_func.r")
+robjects.r.source("./powerApp_func.R")
 # robjects.r.SayHi("John")
 
 # Loading the function we have defined in R.
@@ -44,8 +44,9 @@ with localconverter(robjects.default_converter + pandas2ri.converter):
 # === 呼叫 R Function， return R df ===
 # =====================================
 #Invoking the R function and getting the result
+print('==== Before call R function ====')
 df_result_r = function_r(df_prj_r, df_HC_r, div)
-
+print('==== After call R function ====')
 # ================================
 # === 將 R df 轉換成  Pandas.df ===
 # ================================

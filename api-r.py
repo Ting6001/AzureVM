@@ -38,7 +38,7 @@ class WorkRate (Resource):
         # df_result = getWorkRate(div, df_prj, df_HC)
         # print(df_result)
         #################  先把code放進來 debug 用 ####################################################
-        robjects.r.source("./powerApp_func.r")
+        robjects.r.source("./powerApp_func.R")
         function_r = robjects.globalenv['hr_dept']
 
         # pandas DataFrame去除na，有na值的話，直接轉換會error
@@ -49,7 +49,7 @@ class WorkRate (Resource):
         print(df_HC.dtypes)
         print('===============================================')
         df_prj.fillna("", inplace=True)
-        df_HC = df_HC.drop(['savetime', 'UserId'], axis=1)
+        df_HC = df_HC.drop(['savetime', 'user_id'], axis=1)
 
         print(df_prj)
         print(df_prj.isna())
