@@ -22,7 +22,7 @@ class WorkRate (Resource):
 
     def post(self): # create
         arg = self.parser.parse_args()
-        # print(arg)     
+        print(arg)     
         set_dep = set()
         set_sub = set()
         df_prj = pd.DataFrame()
@@ -30,10 +30,12 @@ class WorkRate (Resource):
 
         div = arg['division']
         if arg['data_Prj']:
+            print('get data_Prj')
             df_prj = pd.DataFrame(arg['data_Prj'])
             df_prj.fillna("", inplace=True)
             df_prj = df_prj.astype({'project_code':str, 'project_code_old':str})
         if arg['data_HC']:
+            print('get data_HC')
             df_HC = pd.DataFrame(arg['data_HC'])
             df_HC = df_HC.drop(['save_time', 'user_id'], axis=1)
             df_HC = df_HC.astype({'div':str, 'deptid':str, 'project_code':str})
