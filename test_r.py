@@ -4,7 +4,7 @@ from rpy2.robjects import pandas2ri
 from rpy2.robjects.conversion import localconverter
 
 # Defining the R script and loading the instance in Python
-robjects.r.source("./powerApp_func.R")
+robjects.r.source("./powerApp_func.r")
 # robjects.r.SayHi("John")
 
 # Loading the function we have defined in R.
