@@ -72,7 +72,7 @@ class WorkRate (Resource):
         with localconverter(robjects.default_converter + pandas2ri.converter):
             df_result = robjects.conversion.rpy2py(df_result_r)        
         print('======== Function return ==========')
-        print(df_result)
+        df_result.fillna(0.0, inplace=True)
         dic_result = df_result.to_dict('records')
         print(dic_result)
         return dic_result
@@ -126,6 +126,7 @@ def getWorkRate(div, df_prj, df_HC):
         df_result = robjects.conversion.rpy2py(df_result_r)
 
     # df_result = pandas2ri.py2ri(df_result_r) # 舊寫法不能用了
+    df_
     return df_result
 
 
