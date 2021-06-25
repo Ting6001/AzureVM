@@ -17,7 +17,7 @@ class WorkRate (Resource):
     parser = reqparse.RequestParser()
     # parser.add_argument('email', required=True, help='Email is required')
     # parser = parser.add_argument('lst', type=str, location='json', action="append")
-    parser = parser.add_argument('div', type=str, required=True,  help='div is required')
+    parser = parser.add_argument('division', type=str, required=True,  help='div is required')
     parser = parser.add_argument('data_Prj', type=dict, location='json', action="append", help='data Project info is required')
     parser = parser.add_argument('data_HC', type=dict, location='json', action="append", help='data Hc info is required')
 
@@ -29,7 +29,7 @@ class WorkRate (Resource):
         set_sub = set()
         df_prj = pd.DataFrame()
         df_HC = pd.DataFrame()
-        div = arg['div']
+        div = arg['division']
         if arg['data_Prj']:
             df_prj = pd.DataFrame(arg['data_Prj'])
             for item in arg['data_Prj']:
