@@ -68,11 +68,26 @@ hr_cal <- function(df_prj,
     # old_stage <- df_proj$project_start_stage[df_proj$project_code == proj_code]
     old_stage <- ifelse(proj_code == "" | is.na(proj_code), min(df_proj$project_start_stage), df_proj$project_start_stage[df_proj$project_code == proj_code])
     new_stage <- 'C0'
+    old_stage = ifelse(old_stage == 'C0' | is.na(old_stage), 0,
+                        ifelse(old_stage == 'C1', 1,
+                                ifelse(old_stage == 'C2', 2,
+                                      ifelse(old_stage == 'C3', 3,
+                                              ifelse(old_stage == 'C4', 4,
+                                                    ifelse(old_stage == 'C5', 5,
+                                                            ifelse(old_stage == 'C6', 6)))))))
+    new_stage = ifelse(new_stage == 'C0'| is.na(new_stage), 0,
+                      ifelse(new_stage == 'C1', 1,
+                              ifelse(new_stage == 'C2', 2,
+                                    ifelse(new_stage == 'C3', 3,
+                                            ifelse(new_stage == 'C4', 4,
+                                                  ifelse(new_stage == 'C5', 5,
+                                                          ifelse(new_stage == 'C6', 6)))))))
   } else{
     new_hr = NA_real_
     new_mon = NA_real_
     old_stage = min(df_proj$project_start_stage)
     new_stage = old_stage
+
   }
   
   if (sum(dim(df_hc)) != 0){
