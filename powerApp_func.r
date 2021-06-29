@@ -63,7 +63,10 @@ hr_cal <- function(df_prj,
       new_hr = NA_real_
       new_mon = NA_real_
     }
-    old_stage <- df_proj$project_start_stage[df_proj$project_code == proj_code]
+
+
+    # old_stage <- df_proj$project_start_stage[df_proj$project_code == proj_code]
+    old_stage <- ifelse(proj_code == "" | is.na(proj_code), min(df_proj$project_start_stage), df_proj$project_start_stage[df_proj$project_code == proj_code])
     new_stage <- 'C0'
   } else{
     new_hr = NA_real_
