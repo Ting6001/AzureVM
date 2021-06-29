@@ -47,7 +47,7 @@ class WorkRate (Resource):
         # print(df_result)
         #################  先把code放進來 debug 用 ####################################################
         robjects.r.source("./powerApp_func.r")
-        function_r = robjects.globalenv['hr_dept']
+        function_r = robjects.globalenv['hr_cal']
 
         # pandas DataFrame去除na，有na值的話，直接轉換會error
         # df = pd.read_excel("./data/powerapp_df.xlsx")
