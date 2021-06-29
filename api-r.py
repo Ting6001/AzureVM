@@ -53,32 +53,30 @@ class WorkRate (Resource):
 
         # pandas DataFrame去除na，有na值的話，直接轉換會error
         # df = pd.read_excel("./data/powerapp_df.xlsx")
-        print(df_prj)
-        print(df_prj.isna())
-        print(df_HC)
-        print(df_HC.isna())
-        print(df_prj.dtypes)
-        print(df_HC.dtypes)
+        # print(df_prj)
+        # print(df_prj.isna())
+        # print(df_HC)
+        # print(df_HC.isna())
+        # print(df_prj.dtypes)
+        # print(df_HC.dtypes)
 
         # === 將 Pandas.df 轉換成 R df ===
         print('==== Transfer Pandas.df to R.df ====')
         with localconverter(robjects.default_converter + pandas2ri.converter):
             df_prj_r = robjects.conversion.py2rpy(df_prj)
             df_HC_r = robjects.conversion.py2rpy(df_HC)
-            print(type(df_prj_r))
-            print(type(df_HC_r))
-            print(df_prj_r)
-            print(df_HC_r)
+            # print(type(df_prj_r))
+            # print(type(df_HC_r))
+            # print(df_prj_r)
+            # print(df_HC_r)
             # df_r = robjects.conversion.py2rpy(df)
         # === 呼叫 R Function， return R df ===
         print('==== Before R Functioin ====')
         df_result_r = function_r(df_prj_r, df_HC_r, div)
-        print(type(df_result_r))
         print('==== Transfer R.df to Pandas.df ====')
         # === 將 R df 轉換成  Pandas.df ===
         with localconverter(robjects.default_converter + pandas2ri.converter):
-            df_result = robjects.conversion.rpy2py(df_result_r)  
-            print(type(df_result))      
+            df_result = robjects.conversion.rpy2py(df_result_r)       
         print('======== Function return ==========')
         df_result.fillna(0.0, inplace=True)
         dic_result = df_result.to_dict('records')
