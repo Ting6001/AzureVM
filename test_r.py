@@ -2,19 +2,20 @@ import pandas as pd
 import rpy2.robjects as robjects
 from rpy2.robjects import pandas2ri
 from rpy2.robjects.conversion import localconverter
-
+import time
+start = time.process_time()
 # Defining the R script and loading the instance in Python
 robjects.r.source("./powerApp_func.r")
 # robjects.r.SayHi("John")
 
 # Loading the function we have defined in R.
-function_r = robjects.globalenv['hr_dept']
+function_r = robjects.globalenv['hr_cal']
 
 # Reading and processing data
 # 讀取成Python的df
 df_prj = pd.read_csv("./data/df_prj.csv")
 df_HC = pd.read_csv("./data/df_HC.csv")
-div = "230000"
+div = "23R000"
 print(df_prj)
 print(df_HC)
 print(df_prj.dtypes)
@@ -56,3 +57,5 @@ with localconverter(robjects.default_converter + pandas2ri.converter):
 
 # df_result = pandas2ri.py2ri(df_result_r) # 舊寫法不能用了
 print(df_result)
+time_taken = round(time.process_time() - start,2)
+print('Take:', time_taken, 's')

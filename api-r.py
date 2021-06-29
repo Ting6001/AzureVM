@@ -7,6 +7,7 @@ import json
 import rpy2.robjects as robjects
 from rpy2.robjects import pandas2ri
 from rpy2.robjects.conversion import localconverter
+import time
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
@@ -21,6 +22,7 @@ class WorkRate (Resource):
     parser = parser.add_argument('data_HC', type=dict, location='json', action="append", help='data Hc info is required')
 
     def post(self): # create
+        start = time.process_time()
         arg = self.parser.parse_args()
         print(arg)     
         set_dep = set()
@@ -79,6 +81,8 @@ class WorkRate (Resource):
         df_result.fillna(0.0, inplace=True)
         dic_result = df_result.to_dict('records')
         print(dic_result)
+        time_taken = round(time.process_time() - start,3)
+        print('Take:', time_taken, 's')
         return dic_result
 
         ##############################################################################################
@@ -95,7 +99,7 @@ def getWorkRate(div, df_prj, df_HC):
     # robjects.r.SayHi("John")
 
     # Loading the function we have defined in R.
-    function_r = robjects.globalenv['hr_dept']
+    function_r = robjects.globalenv['hr_cal']
 
     # Reading and processing data
     # 讀取成Python的df
