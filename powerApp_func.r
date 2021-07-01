@@ -23,14 +23,9 @@ hr_cal <- function(df_prj,
           dplyr.summarise.inform = FALSE)
   
   ###----- Load Data ------------------------------
-  # setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-  # df_prj <- fread('./data/df_prj_0621.csv', 
-  #                 na.strings = c('', 'NA', NA, 'NULL'))
-  # df_hc <- fread('./data/df_HC_0624.csv', 
-  #                na.strings = c('', 'NA', NA, 'NULL'))
-  df_all <- read_xlsx('./data/powerapp_df.xlsx', sheet = 1)
+  df_all <- fread('./data/UtilizationRateInfo_0630.csv',
+                  na.strings = c('', 'NA', NA, 'NULL'))
   
-  # last_update_date = '2021-05-01'
   if (is.na(division) == F){
     df <- df_all %>%
       filter(div == division)
@@ -57,410 +52,298 @@ hr_cal <- function(df_prj,
   ## settings
   if (sum(dim(df_prj)) != 0){
     proj_code = unique(df_prj$project_code_old)
-    new_hr = unique(df_prj$execute_hour[df_prj$project_code == 0])
-    new_mon = unique(df_prj$execute_month[df_prj$project_code == 0])
-    if ((df_prj$project_code == 0) == F){
-      new_hr = NA_real_
-      new_mon = NA_real_
-    }
-
-
-    # old_stage <- df_proj$project_start_stage[df_proj$project_code == proj_code]
+    new_hr = unique(df_prj$execute_hour)
+    new_mon = unique(df_prj$execute_month)
     old_stage <- ifelse(proj_code == "" | is.na(proj_code), min(df_proj$project_start_stage), df_proj$project_start_stage[df_proj$project_code == proj_code])
     new_stage <- 'C0'
-    old_stage = ifelse(old_stage == 'C0' | is.na(old_stage), 0,
-                        ifelse(old_stage == 'C1', 1,
-                                ifelse(old_stage == 'C2', 2,
-                                      ifelse(old_stage == 'C3', 3,
-                                              ifelse(old_stage == 'C4', 4,
-                                                    ifelse(old_stage == 'C5', 5,
-                                                            ifelse(old_stage == 'C6', 6)))))))
-    new_stage = ifelse(new_stage == 'C0'| is.na(new_stage), 0,
-                      ifelse(new_stage == 'C1', 1,
-                              ifelse(new_stage == 'C2', 2,
-                                    ifelse(new_stage == 'C3', 3,
-                                            ifelse(new_stage == 'C4', 4,
-                                                  ifelse(new_stage == 'C5', 5,
-                                                          ifelse(new_stage == 'C6', 6)))))))
   } else{
     new_hr = NA_real_
     new_mon = NA_real_
     old_stage = min(df_proj$project_start_stage)
     new_stage = old_stage
-
   }
+  
+  old_stage = ifelse(old_stage == 'C0' | is.na(old_stage), 0,
+                     ifelse(old_stage == 'C1', 1,
+                            ifelse(old_stage == 'C2', 2,
+                                   ifelse(old_stage == 'C3', 3,
+                                          ifelse(old_stage == 'C4', 4,
+                                                 ifelse(old_stage == 'C5', 5,
+                                                        ifelse(old_stage == 'C6', 6)))))))
+  new_stage = ifelse(new_stage == 'C0'| is.na(new_stage), 0,
+                     ifelse(new_stage == 'C1', 1,
+                            ifelse(new_stage == 'C2', 2,
+                                   ifelse(new_stage == 'C3', 3,
+                                          ifelse(new_stage == 'C4', 4,
+                                                 ifelse(new_stage == 'C5', 5,
+                                                        ifelse(new_stage == 'C6', 6)))))))
   
   if (sum(dim(df_hc)) != 0){
     head_count <- df_hc %>%
       group_by(div, deptid, sub_job_family) %>%
       summarise(hc = sum(HC)) %>%
+      ungroup() %>%
+      group_by(sub_job_family) %>%
+      mutate(hc_pct = hc / sum(hc)) %>%
       ungroup()
   } else{
-    head_count <- data.frame(deptid = NA, sub_job_family = NA, hc = NA)
+    head_count <- data.frame(deptid = NA, sub_job_family = NA, hc = 0, hc_pct = 0)
   }
   
   
   ###----- Calculate ------------------------------
-  ## Attendance
-  df_dept_attend <- df %>%
-    group_by(div, deptid, date) %>%
-    summarise(attendance = sum(attendance)) %>%
-    ungroup()
+  ## setting standing month
+  stand_date = '2021-05-01'
   
-  df_func_attend <- df %>%
-    group_by(div, sub_job_family, date) %>%
-    summarise(attendance = sum(attendance)) %>%
-    ungroup()
-  
+  ## Attendance by department and function
   df_attend <- df %>%
-    group_by(date) %>%
-    summarise(attendance = mean(attendance)) %>%
-    ungroup()
-  
-  
-  #--------------#
-  #- Department -#
-  #--------------#
-  ## Monthly by department
-  df_dept_mon <- df %>%
-    filter(!is.na(project_code)) %>%
-    group_by(div, deptid, sub_job_family, project_code, date) %>%
-    summarise(total_hour_by_dep_func = mean(total_hour_by_dep_func)) %>%
-    arrange(date) %>%
+    group_by(div, date) %>%
+    summarise(attendance_emp = mean(attendance)) %>%
     ungroup() %>%
-    distinct()
-  
-  if (old_stage > new_stage){
-    df_dept <- df %>%
-      filter(!is.na(project_code)) %>%
-      group_by(div, deptid, sub_job_family, project_code, stage) %>%
-      summarise(total_hour_by_dep_func = mean(total_hour_by_dep_func)) %>%
-      ungroup() %>%
-      left_join(df_proj %>%
-                  melt(id = 'project_code', 
-                       measure = c('C0', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6'),
-                       variable.name = 'stage',
-                       value.name = 'days'),
-                by = c('project_code', 'stage')) %>%
-      left_join(df_proj %>%
-                  select(project_code, execute_hour, execute_month),
-                by = c('project_code')) %>%
-      group_by(div, deptid, sub_job_family, stage) %>%
-      mutate(total_hour_by_dep_func = mean(total_hour_by_dep_func)) %>%
-      ungroup() %>%
-      mutate(hr_ratio = ifelse(new_hr == 0 | is.na(new_hr), 1, new_hr / execute_hour),
-             mon_ratio = ifelse(new_mon == 0 | is.na(new_mon), 1, new_mon / execute_month),
-             
-             total_hour = total_hour_by_dep_func * hr_ratio,
-             days = days * mon_ratio,
-             
-             exp_hr = total_hour_by_dep_func / days) %>%
-      replace_na(list(days = 1)) %>%
-      slice(rep(1:n(), days)) %>%
-      group_by(project_code, deptid, sub_job_family) %>%
-      mutate(num_d = row_number(),
-             gp_num = (num_d - 1) %/% 30 + 1) %>%
-      ungroup() %>%
-      group_by(project_code, sub_job_family, gp_num) %>%
-      summarise(exp_hr = round(sum(exp_hr), 1)) %>%
-      ungroup() %>%
-      filter(gp_num <= 3) %>%
-      mutate(date = case_when(gp_num == 1 ~ max(ymd(df$date)) %m-% months(2),
-                              gp_num == 2 ~ max(ymd(df$date)) %m-% months(1),
-                              gp_num == 3 ~ max(ymd(df$date)),
-                              TRUE ~ NA_Date_)) %>%
-      select(-c(gp_num))
-  } else{
-    df_dept <- df %>%
-      filter(!is.na(project_code)) %>%
-      group_by(div, deptid, sub_job_family, project_code, stage) %>%
-      summarise(total_hour_by_dep_func = mean(total_hour_by_dep_func)) %>%
-      ungroup() %>%
-      left_join(df_proj %>%
-                  melt(id = 'project_code', 
-                       measure = c('C0', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6'),
-                       variable.name = 'stage',
-                       value.name = 'days'),
-                by = c('project_code', 'stage')) %>%
-      left_join(df_proj %>%
-                  select(project_code, execute_hour, execute_month),
-                by = c('project_code')) %>%
-      mutate(hr_ratio = ifelse(new_hr == 0 | is.na(new_hr), 1, new_hr / execute_hour),
-             mon_ratio = ifelse(new_mon == 0 | is.na(new_mon), 1, new_mon / execute_month),
-             
-             total_hour = total_hour_by_dep_func * hr_ratio,
-             days = days * mon_ratio,
-             
-             exp_hr = total_hour_by_dep_func / days) %>%
-      replace_na(list(days = 1)) %>%
-      slice(rep(1:n(), days)) %>%
-      group_by(project_code, deptid, sub_job_family) %>%
-      mutate(num_d = row_number(),
-             gp_num = (num_d - 1) %/% 30 + 1) %>%
-      ungroup() %>%
-      group_by(project_code, sub_job_family, gp_num) %>%
-      summarise(exp_hr = round(sum(exp_hr), 1)) %>%
-      ungroup() %>%
-      filter(gp_num <= 3) %>%
-      mutate(date = case_when(gp_num == 1 ~ max(ymd(df$date)) %m-% months(2),
-                              gp_num == 2 ~ max(ymd(df$date)) %m-% months(1),
-                              gp_num == 3 ~ max(ymd(df$date)),
-                              TRUE ~ NA_Date_)) %>%
-      select(-c(gp_num))
-  }
-  
-  
-  ## calculate head count
-  if (sum(dim(df_hc)) != 0){
-    df_dept_func_cnt <- df %>%
-      group_by(div, deptid, sub_job_family) %>%
-      summarise(cnt = n()) %>%
-      ungroup() %>%
-      left_join(head_count %>% 
-                  mutate(deptid = as.character(deptid)),
-                by = c('div', 'deptid', 'sub_job_family')) %>% 
-      replace_na(list(hc = 0)) %>%
-      mutate(cnt = cnt + hc) %>%
-      group_by(sub_job_family) %>%
-      mutate(tlt_cnt = sum(cnt),
-             pct = cnt / tlt_cnt) %>%
-      ungroup()
-  } else{
-    df_dept_func_cnt <- df %>%
-      group_by(div, deptid, sub_job_family) %>%
-      summarise(cnt = n()) %>%
-      ungroup() %>%
-      group_by(sub_job_family) %>%
-      mutate(tlt_cnt = sum(cnt),
-             pct = cnt / tlt_cnt)
-  }
-  
-  
-  cal_dept <- df_dept_mon %>%
-    select(div, date, deptid, sub_job_family, project_code, total_hour_by_dep_func) %>%
-    left_join(df_dept,
-              by = c("project_code", "date", "sub_job_family")) %>%
-    left_join(df_dept_func_cnt,
-              by = c("div", "deptid", "sub_job_family")) %>%
-    replace_na(list(exp_hr = 0)) %>%
-    mutate(HC = cnt,
-           exp_total_hr = round((total_hour_by_dep_func + exp_hr) * pct),
-           type = 'DEP') %>%
-    replace_na(list(exp_total_hr = 0)) %>%
-    rename(title = deptid) %>%
-    group_by(div, type, title, date) %>%
-    summarise(exp_total_hr = sum(exp_total_hr)) %>%
-    ungroup() %>%
-    left_join(df_dept_attend %>%
-                rename(dept_att = attendance),
-              by = c('div', 'title' = 'deptid', 'date')) %>%
-    left_join(head_count %>% 
-                group_by(deptid) %>%
-                summarise(hc = sum(hc)),
-              by = c('title' = 'deptid')) %>%
-    left_join(df_attend,
-              by = c('date')) %>%
-    replace_na(list(dept_att = 0,
-                    hc = 0,
-                    attendance = 0)) %>%
-    mutate(uti_rate = exp_total_hr / (dept_att + attendance * hc)) %>%
-    mutate(uti_rate = ifelse(is.infinite(uti_rate) | is.na(uti_rate), 0, uti_rate)) %>%
-    select(div, type, title, date, hc, uti_rate) %>%
-    spread(date, uti_rate)
-  
-  out_names <- c("div", "type", "title", 
-                 as.character(max(ymd(df_all$date)) %m-% months(5)),
-                 as.character(max(ymd(df_all$date)) %m-% months(4)),
-                 as.character(max(ymd(df_all$date)) %m-% months(3)),
-                 "hc", 
-                 as.character(max(ymd(df_all$date)) %m-% months(2)),
-                 as.character(max(ymd(df_all$date)) %m-% months(1)),
-                 as.character(max(ymd(df_all$date))))
- 
-  if (length(setdiff(out_names, names(cal_dept))) == 0){
-    out_dept <- cal_dept %>% 
-      select(out_names)
-  } else{
-    out_dept1 <- setNames(data.frame(matrix(ncol = 10, nrow = 1)), 
-                         out_names) %>%
-      mutate_all(as.character())
-    
-    out_dept <- bind_rows(out_dept1, 
-              cal_dept %>% 
-                select(div, type, title, hc)) %>%
-      filter(!is.na(div))
-    out_dept[is.na(out_dept)] <- 0
-  }
-  names(out_dept) <- c('Div', 'Type', 'Title', 'b_1', 'b_2', 'b_3', 'hc', 'a_1', 'a_2', 'a_3')
+    left_join(df %>%
+                group_by(div, deptid, sub_job_family, date) %>%
+                summarise(cnt_dept_func = n_distinct(emplid)) %>%
+                ungroup(),
+              by = c("div", "date")) %>%
+    left_join(df %>%
+                group_by(div, sub_job_family, date) %>%
+                summarise(cnt_func = n_distinct(emplid)) %>%
+                ungroup(),
+              by = c('div', 'date', 'sub_job_family')) %>%
+    mutate(attendance_dept_func = attendance_emp * cnt_dept_func,
+           attendance_func = attendance_emp * cnt_func)
   
   
   #------------#
   #- Function -#
   #------------#
-  ## Monthly by Function
+  ## Monthly hours by Function
   df_func_mon <- df %>%
     filter(!is.na(project_code)) %>%
-    group_by(div, project_code, sub_job_family, date) %>%
-    summarise(total_hour_by_dep_func = mean(total_hour_by_dep_func)) %>%
+    group_by(div, sub_job_family, date) %>%
+    summarise(total_hour_by_func = sum(total_hour)) %>%
     arrange(date) %>%
+    ungroup()
+  
+  ## Previous utilization rate
+  df_func_rate <- df %>%
+    filter(!is.na(project_code)) %>%
+    group_by(div, sub_job_family, date) %>%
+    summarise(uti_rate = mean(utilization_rate_by_div_func)) %>%
+    arrange(date) %>%
+    ungroup()
+  
+  
+  ## New and Old project proportion
+  proj_prop <- df_proj %>%
+    filter(project_code == proj_code) %>%
+    select(project_code, execute_hour, execute_month, project_start_stage) %>%
+    mutate(new_hour = new_hr,
+           new_month = new_mon) %>%
+    mutate(hr_ratio = ifelse(new_hr == 0 | is.na(new_hr), 1, new_hr / execute_hour),
+           mon_ratio = ifelse(new_mon == 0 | is.na(new_mon), 1, new_mon / execute_month))
+  
+  
+  # ### Average hour by stage
+  # df_func_stage_mon <- df %>%
+  #   filter(!is.na(project_code)) %>%
+  #   group_by(div, sub_job_family, stage) %>%
+  #   summarise(total_hour_by_func_stage = sum(total_hour)) %>%
+  #   ungroup() %>%
+  #   group_by(sub_job_family, stage) %>%
+  #   mutate(avg_totle_hour_stage = mean(total_hour_by_func_stage)) %>%
+  #   ungroup() 
+  
+  
+  ## Calculate next three month utilization rate
+  df_func_rate_future <- df_proj %>%
+    filter(project_code == proj_code) %>%
+    melt(id = 'project_code', 
+         measure = c('C0', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6'),
+         variable.name = 'stage',
+         value.name = 'days') %>%
+    replace_na(list(days = 1)) %>%
+    slice(rep(1:n(), days)) %>%
+    mutate(months = round(days / 30, 1),
+           gp_num = (row_number() - 1) %/% 30 + 1) %>%
+    filter(gp_num <= 3) %>%
+    mutate(date = case_when(gp_num == 1 ~ as.Date(stand_date) %m+% months(1),
+                            gp_num == 2 ~ as.Date(stand_date) %m+% months(2),
+                            gp_num == 3 ~ as.Date(stand_date) %m+% months(3),
+                            TRUE ~ NA_Date_)) %>%
+    left_join(df_func_mon %>%
+                left_join(df_attend %>%
+                            select(div, date, attendance_emp, sub_job_family, attendance_func),
+                          by = c('div', 'sub_job_family', 'date')) %>%
+                distinct() %>% 
+                filter(date >= as.Date(stand_date) %m+% months(1)),
+              by = c('date')) %>%
+    left_join(head_count %>%
+                select(-deptid),
+              by = c("div", "sub_job_family")) %>%
+    replace_na(list(hc = 0,
+                    hc_pct = 1)) %>%
+    group_by(div, date, sub_job_family) %>%
+    mutate(cal_hour = (total_hour_by_func * proj_prop$hr_ratio) / (months * proj_prop$mon_ratio),
+           total_hour_by_func_cal = (total_hour_by_func + cal_hour) * hc_pct) %>%
+    ungroup() %>%
+    distinct() %>%
+    group_by(div, date, sub_job_family) %>%
+    summarise(total_hour_by_func_cal = sum(total_hour_by_func_cal),
+              hc = mean(hc),
+              uti_rate = round(sum(total_hour_by_func_cal) / (attendance_func + (attendance_emp * hc)), 2)) %>%
     ungroup() %>%
     distinct()
   
-  if (old_stage > new_stage){
-    df_func <- df %>%
-      filter(!is.na(project_code)) %>%
-      group_by(div, project_code, stage, sub_job_family) %>%
-      summarise(total_hour_by_dep_func = mean(total_hour_by_dep_func)) %>%
-      left_join(df_proj %>%
-                  melt(id = 'project_code', 
-                       measure = c('C0', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6'),
-                       variable.name = 'stage',
-                       value.name = 'days'),
-                by = c('project_code', 'stage')) %>%
-      left_join(df_proj %>%
-                  select(project_code, execute_hour, execute_month),
-                by = "project_code") %>%
-      group_by(div, sub_job_family, stage) %>%
-      mutate(total_hour_by_dep_func = mean(total_hour_by_dep_func)) %>%
-      ungroup() %>%
-      mutate(hr_ratio = ifelse(new_hr == 0 | is.na(new_hr), 1, new_hr / execute_hour),
-             mon_ratio = ifelse(new_mon == 0 | is.na(new_mon), 1, new_mon / execute_month),
-             
-             total_hour = total_hour_by_dep_func * hr_ratio,
-             days = days * mon_ratio,
-             
-             exp_hr = total_hour_by_dep_func / days) %>%
-      replace_na(list(days = 1)) %>%
-      slice(rep(1:n(), days)) %>%
-      group_by(project_code, sub_job_family) %>%
-      mutate(num_d = row_number(),
-             gp_num = (num_d - 1) %/% 30 + 1) %>%
-      ungroup() %>%
-      group_by(project_code, sub_job_family, gp_num) %>%
-      summarise(exp_hr = round(sum(exp_hr), 1)) %>%
-      ungroup() %>%
-      filter(gp_num <= 3) %>%
-      mutate(date = case_when(gp_num == 1 ~ max(ymd(df$date)) %m-% months(2),
-                              gp_num == 2 ~ max(ymd(df$date)) %m-% months(1),
-                              gp_num == 3 ~ max(ymd(df$date)),
-                              TRUE ~ NA_Date_)) %>%
-      select(-gp_num)
-  } else{
-    df_func <- df %>%
-      filter(!is.na(project_code)) %>%
-      group_by(div, project_code, stage, sub_job_family) %>%
-      summarise(total_hour_by_dep_func = mean(total_hour_by_dep_func)) %>%
-      left_join(df_proj %>%
-                  melt(id = 'project_code', 
-                       measure = c('C0', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6'),
-                       variable.name = 'stage',
-                       value.name = 'days'),
-                by = c('project_code', 'stage')) %>%
-      left_join(df_proj %>%
-                  select(project_code, execute_hour, execute_month),
-                by = "project_code") %>%
-      mutate(hr_ratio = ifelse(new_hr == 0 | is.na(new_hr), 1, new_hr / execute_hour),
-             mon_ratio = ifelse(new_mon == 0 | is.na(new_mon), 1, new_mon / execute_month),
-             
-             total_hour = total_hour_by_dep_func * hr_ratio,
-             days = days * mon_ratio,
-             
-             exp_hr = total_hour_by_dep_func / days) %>%
-      replace_na(list(days = 1)) %>%
-      slice(rep(1:n(), days)) %>%
-      group_by(project_code, sub_job_family) %>%
-      mutate(num_d = row_number(),
-             gp_num = (num_d - 1) %/% 30 + 1) %>%
-      ungroup() %>%
-      group_by(project_code, sub_job_family, gp_num) %>%
-      summarise(exp_hr = round(sum(exp_hr), 1)) %>%
-      ungroup() %>%
-      filter(gp_num <= 3) %>%
-      mutate(date = case_when(gp_num == 1 ~ max(ymd(df$date)) %m-% months(2),
-                              gp_num == 2 ~ max(ymd(df$date)) %m-% months(1),
-                              gp_num == 3 ~ max(ymd(df$date)),
-                              TRUE ~ NA_Date_)) %>%
-      select(-gp_num)
-  }
   
-  
-  ## calculate head count
-  if (sum(dim(df_hc)) != 0){
-    df_func_cnt <- df %>%
-      group_by(sub_job_family) %>%
-      summarise(cnt = n()) %>%
-      ungroup() %>%
-      left_join(head_count %>%
-                  group_by(sub_job_family) %>%
-                  summarise(hc = sum(hc)),
-                by = "sub_job_family") %>% 
-      replace_na(list(hc = 0)) %>%
-      mutate(cnt = cnt + hc)
-  } else{
-    df_func_cnt <- df %>%
-      group_by(sub_job_family) %>%
-      summarise(cnt = n()) %>%
-      ungroup()
-  }
-  
-  
-  cal_func <- df_func_mon %>%
-    filter(!(is.na(project_code))) %>%
-    select(div, project_code, date, sub_job_family, total_hour_by_dep_func) %>%
-    left_join(df_func,
-              by = c("project_code", "date", "sub_job_family")) %>%
-    replace_na(list(exp_hr = 0)) %>%
-    mutate(exp_total_hr = round(total_hour_by_dep_func + exp_hr)) %>%
-    left_join(df_func_cnt,
-              by = c("sub_job_family")) %>%
-    mutate(HC = cnt,
-           type = 'SUB') %>%
-    replace_na(list(exp_total_hr = 0)) %>%
-    rename(title = sub_job_family) %>%
-    group_by(div, type, title, date) %>%
-    summarise(exp_total_hr = sum(exp_total_hr)) %>%
-    ungroup() %>%
-    left_join(df_func_attend %>%
-                rename(func_att = attendance),
-              by = c('div', 'title' = 'sub_job_family', 'date')) %>%
-    left_join(head_count %>% 
-                group_by(sub_job_family) %>%
-                summarise(hc = sum(hc)),
-              by = c('title' = 'sub_job_family')) %>%
-    left_join(df_attend,
-              by = c('date')) %>%
-    replace_na(list(func_att = 0,
-                    hc = 0,
-                    attendance = 0)) %>%
-    mutate(uti_rate = exp_total_hr / (func_att + attendance * hc)) %>%
-    select(div, type, title, date, hc, uti_rate) %>%
-    spread(date, uti_rate)
-  
-  
-  out_names <- c("div", "type", "title", 
-                 as.character(max(ymd(df_all$date)) %m-% months(5)),
-                 as.character(max(ymd(df_all$date)) %m-% months(4)),
-                 as.character(max(ymd(df_all$date)) %m-% months(3)),
-                 "hc", 
-                 as.character(max(ymd(df_all$date)) %m-% months(2)),
-                 as.character(max(ymd(df_all$date)) %m-% months(1)),
-                 as.character(max(ymd(df_all$date))))
-  
-  if (length(setdiff(out_names, names(cal_func))) == 0){
-    out_func <- cal_func %>% select(out_names)
-  } else{
-    out_func1 <- setNames(data.frame(matrix(ncol = 10, nrow = 1)), 
-                         out_names) %>%
-      mutate_all(as.character())
-    
-    out_func <- bind_rows(out_func1, 
-                          cal_func %>% 
-                            select(div, type, title, hc)) %>%
-      filter(!is.na(div))
-    out_func[is.na(out_func)] <- 0
-  }
+  ## Combine previous and future rate
+  out_func <- df_func_mon %>%
+    mutate(type = 'SUB') %>%
+    select(div, type, sub_job_family) %>%
+    distinct() %>%
+    left_join(df_func_rate_future %>%
+                select(div, sub_job_family, date, uti_rate) %>%
+                spread(date, uti_rate),
+              by = c('div', 'sub_job_family')) %>%
+    left_join(head_count %>%
+                group_by(div, sub_job_family) %>%
+                summarise(hc = sum(hc)) %>%
+                ungroup(),
+              by = c('div', 'sub_job_family')) %>%
+    left_join(df_func_rate %>%
+                filter(date >= as.Date(stand_date) %m-% months(2) & date <= as.Date(stand_date)) %>%
+                select(div, sub_job_family, date, uti_rate) %>%
+                spread(date, uti_rate),
+              by = c('div', 'sub_job_family'))
+  out_func[is.na(out_func)] <- 0
   names(out_func) <- c('Div', 'Type', 'Title', 'b_1', 'b_2', 'b_3', 'hc', 'a_1', 'a_2', 'a_3')
   
+  
+  if (nrow(out_func) != 0){
+    out_func <- out_func
+  } else{
+    out_func <- df_func_mon %>%
+      mutate(type = 'SUB') %>%
+      select(div, type, sub_job_family) %>%
+      distinct() %>%
+      rename(Div = div,
+             Type = type,
+             Title = sub_job_family) %>%
+      mutate(b_1 = 0, 
+             b_2 = 0, 
+             b_3 = 0, 
+             hc = 0, 
+             a_1 = 0, 
+             a_2 = 0, 
+             a_3 = 0)
+  }
+  
+  
+  #--------------#
+  #- Department -#
+  #--------------#
+  ## Monthly hours by Function
+  df_dept_mon <- df %>%
+    filter(!is.na(project_code)) %>%
+    group_by(div, deptid, sub_job_family, date) %>%
+    summarise(total_hour_by_dep_func = sum(total_hour)) %>%
+    arrange(date) %>%
+    ungroup()
+  
+  ## Previous utilization rate
+  df_dept_rate <- df %>%
+    filter(!is.na(project_code)) %>%
+    group_by(div, deptid, date) %>%
+    summarise(uti_rate = mean(utilization_rate_by_dep)) %>%
+    arrange(date) %>%
+    ungroup()
+  
+  ## Calculate next three month utilization rate
+  df_dept_rate_future <- df_proj %>%
+    filter(project_code == proj_code) %>%
+    melt(id = 'project_code', 
+         measure = c('C0', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6'),
+         variable.name = 'stage',
+         value.name = 'days') %>%
+    replace_na(list(days = 1)) %>%
+    slice(rep(1:n(), days)) %>%
+    mutate(months = round(days / 30, 1),
+           gp_num = (row_number() - 1) %/% 30 + 1) %>%
+    filter(gp_num <= 3) %>%
+    mutate(date = case_when(gp_num == 1 ~ as.Date(stand_date) %m+% months(1),
+                            gp_num == 2 ~ as.Date(stand_date) %m+% months(2),
+                            gp_num == 3 ~ as.Date(stand_date) %m+% months(3),
+                            TRUE ~ NA_Date_)) %>%
+    left_join(df_dept_mon %>%
+                left_join(df_attend %>%
+                            select(div, date, attendance_emp, deptid, sub_job_family, attendance_dept_func),
+                          by = c('div', 'deptid', 'sub_job_family', 'date')) %>%
+                distinct() %>% 
+                filter(date >= as.Date(stand_date) %m+% months(1)),
+              by = c('date')) %>%
+    left_join(head_count,
+              by = c("div", "deptid", "sub_job_family")) %>%
+    replace_na(list(hc = 0,
+                    hc_pct = 1)) %>%
+    group_by(div, date, deptid, sub_job_family) %>%
+    mutate(cal_hour = (total_hour_by_dep_func * proj_prop$hr_ratio) / (months * proj_prop$mon_ratio),
+           total_hour_by_dep_func_cal = (total_hour_by_dep_func + cal_hour) * hc_pct) %>%
+    ungroup() %>%
+    distinct() %>%
+    group_by(div, date, deptid) %>%
+    summarise(total_hour_by_dep_cal = sum(total_hour_by_dep_func_cal),
+              attendance_dept = sum(attendance_dept_func), 
+              hc = mean(hc),
+              uti_rate = round(total_hour_by_dep_cal / (attendance_dept + (attendance_emp * hc)), 2)) %>%
+    ungroup() %>%
+    distinct()
+  
+  
+  ## Combine previous and future rate
+  out_dept <-  df_dept_mon %>%
+    mutate(type = 'DEP') %>%
+    select(div, type, deptid) %>%
+    distinct() %>%
+    left_join(df_dept_rate_future %>%
+                select(div, deptid, date, uti_rate) %>%
+                spread(date, uti_rate),
+              by = c('div', 'deptid')) %>%
+    left_join(head_count %>%
+                group_by(div, deptid) %>%
+                summarise(hc = sum(hc)) %>%
+                ungroup(),
+              by = c('div', 'deptid')) %>%
+    left_join(df_dept_rate %>%
+                filter(date >= as.Date(stand_date) %m-% months(2) & date <= as.Date(stand_date)) %>%
+                select(div, deptid, date, uti_rate) %>%
+                spread(date, uti_rate),
+              by = c('div', 'deptid'))
+  out_dept[is.na(out_dept)] <- 0
+  names(out_dept) <- c('Div', 'Type', 'Title', 'b_1', 'b_2', 'b_3', 'hc', 'a_1', 'a_2', 'a_3')
+  
+  if (nrow(out_dept) != 0){
+    out_dept <- out_dept
+  } else{
+    out_dept <- df_dept_mon %>%
+      mutate(type = 'DEP') %>%
+      select(div, type, deptid) %>%
+      distinct() %>%
+      rename(Div = div,
+             Type = type,
+             Title = deptid) %>%
+      mutate(b_1 = 0, 
+             b_2 = 0, 
+             b_3 = 0, 
+             hc = 0, 
+             a_1 = 0, 
+             a_2 = 0, 
+             a_3 = 0)
+  }
+  
+  
+  #-----------------------------------#
+  #- Combine Department and Function -#
+  #-----------------------------------#
   out <- bind_rows(out_dept,
                    out_func)
   

@@ -85,6 +85,7 @@ class WorkRate (Resource):
         print(dic_result)
         time_taken = round(time.process_time() - start,3)
         print('Take:', time_taken, 's')
+        print('====================================================================================')
         return dic_result
 
         ##############################################################################################
