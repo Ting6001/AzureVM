@@ -71,8 +71,7 @@ class WorkRate (Resource):
                     dic_tmp['b_'+str(i)] = round(random.uniform(0.8, 1.3),1)
                     dic_tmp['a_'+str(i)] = round(random.uniform(0.8, 1.3),1)  
                 lst_return.append(dic_tmp)  
-
-        return {'data':lst_return}
+        return lst_return
 
 # def getWorkRate(div, df_prj, df_HC):
 #     import pandas as pd
