@@ -63,9 +63,9 @@ class WorkRate (Resource):
             for item in lst:
                 print(div, key, item)
                 dic_tmp = {}
-                dic_tmp['div'] = div
-                dic_tmp['type'] = key
-                dic_tmp['title'] = item
+                dic_tmp['Div'] = div
+                dic_tmp['Type'] = key
+                dic_tmp['Title'] = item
                 dic_tmp['HC'] = 0
                 for i in range(1,4): # b_1, b_2, b_3, a_1, a_2, a_3
                     dic_tmp['b_'+str(i)] = round(random.uniform(0.8, 1.3),1)
