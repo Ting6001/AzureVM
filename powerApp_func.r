@@ -49,7 +49,7 @@ hr_cal <- function(df_prj,
     ungroup()
   
   ## settings
-    if (sum(dim(df_hc)) != 0){
+  if (sum(dim(df_hc)) != 0){
     head_count <- df_hc %>%
       group_by(div, deptid, sub_job_family) %>%
       summarise(hc = sum(HC)) %>%
@@ -58,7 +58,7 @@ hr_cal <- function(df_prj,
       mutate(hc_pct = hc / sum(hc)) %>%
       ungroup()
   } else{
-    head_count <- data.frame(deptid = NA, sub_job_family = NA, hc = 0, hc_pct = 0)
+    head_count <- data.frame(div = NA, deptid = NA, sub_job_family = NA, hc = 0, hc_pct = 0)
   }
   
   
