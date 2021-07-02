@@ -66,160 +66,263 @@ hr_cal <- function(df_prj,
   if (length(setdiff(df_prj$project_code_old, df_proj$project_code)) != 0){
     print('Invalid project code!!')
   } else {
-    #------------#
-    #- Function -#
-    #------------#
-    ## Previous utilization rate
-    df_func_rate <- df %>%
-      group_by(div, sub_job_family, date) %>%
-      summarise(uti_rate = mean(utilization_rate_by_div_func),
-                total_hour_func = sum(total_hour),
-                attendance_func = sum(attendance),
-                emp_cnt = n_distinct(emplid) - sum(termination_n),
-                attendance_emp = mean(attendance)) %>%
-      arrange(date) %>%
-      ungroup()
-    
-    ## New and Old project proportion
-    proj_prop <- df_proj %>%
-      filter(project_code == unique(df_prj$project_code_old)) %>%
-      select(project_code, execute_hour, execute_month, project_start_stage) %>%
-      mutate(hr_ratio = ifelse(unique(df_prj$execute_hour) == 0 | is.na(unique(df_prj$execute_hour)), 1, unique(df_prj$execute_hour) / execute_hour),
-             mon_ratio = ifelse(unique(df_prj$execute_month) == 0 | unique(df_prj$execute_month), 1, unique(df_prj$execute_month) / execute_month))
-    
-    ## Calculate next three month utilization rate
-    df_func_rate_future <- df_func_rate %>%
-      left_join(head_count %>%
-                  select(-deptid),
-                by = c("div", "sub_job_family")) %>%
-      replace_na(list(hc = 0,
-                      hc_pct = 1)) %>%
-      group_by(div, date, sub_job_family) %>%
-      mutate(add_hour = (total_hour_func * proj_prop$hr_ratio) / (proj_prop$mon_ratio),
-             total_hour_by_func_cal = (total_hour_func + add_hour) * hc_pct,
-             uti_rate_cal = round(total_hour_by_func_cal / (attendance_func + (attendance_emp * hc)), 2)) %>%
-      ungroup() %>%
-      distinct()
-    
-    ## Combine previous and future rate
-    out_func <- df_func_rate %>%
-      mutate(type = 'SUB') %>%
-      select(div, type, sub_job_family) %>%
-      distinct() %>%
-      left_join(df_func_rate %>%
-                  filter(date >= max(ymd(df_all$date)) %m-% months(5) & date <= max(ymd(df_all$date)) %m-% months(3)) %>%
-                  select(div, sub_job_family, date, uti_rate) %>%
-                  mutate(uti_rate = round(uti_rate, 2)) %>%
-                  spread(date, uti_rate),
-                by = c('div', 'sub_job_family')) %>%
-      left_join(df_func_rate_future %>%
-                  filter(date >= max(ymd(df_all$date)) %m-% months(2) & date <= max(ymd(df_all$date))) %>%
-                  select(div, sub_job_family, hc, date, uti_rate_cal) %>%
-                  mutate(uti_rate_cal = round(uti_rate_cal, 2)) %>%
-                  spread(date, uti_rate_cal),
-                by = c('div', 'sub_job_family'))
-    out_func[is.na(out_func)] <- 0
-    names(out_func) <- c('Div', 'Type', 'Title', 'b_1', 'b_2', 'b_3', 'hc', 'a_1', 'a_2', 'a_3')
-    
-    if (nrow(out_func) != 0){
-      out_func <- out_func
-    } else{
-      out_func <- df_func_mon %>%
+    if (sum(dim(df_prj)) == 0){
+      #------------#
+      #- Function -#
+      #------------#
+      ## utilization rate
+      df_func_rate <- df %>%
+        group_by(div, sub_job_family, date) %>%
+        summarise(uti_rate = mean(utilization_rate_by_div_func),
+                  total_hour_func = sum(total_hour),
+                  attendance_func = sum(attendance),
+                  emp_cnt = n_distinct(emplid) - sum(termination_n),
+                  attendance_emp = mean(attendance)) %>%
+        arrange(date) %>%
+        ungroup()
+      
+      ## output table
+      out_func <- df_func_rate %>%
         mutate(type = 'SUB') %>%
         select(div, type, sub_job_family) %>%
         distinct() %>%
-        rename(Div = div,
-               Type = type,
-               Title = sub_job_family) %>%
-        mutate(b_1 = 0, 
-               b_2 = 0, 
-               b_3 = 0, 
-               hc = 0, 
-               a_1 = 0, 
-               a_2 = 0, 
-               a_3 = 0)
-    }
-    
-    
-    #--------------#
-    #- Department -#
-    #--------------#
-    ## Previous utilization rate
-    df_dept_rate <- df %>%
-      group_by(div, deptid, sub_job_family, date) %>%
-      summarise(uti_rate = mean(utilization_rate_by_dep_func),
-                total_hour_dept_func = sum(total_hour),
-                emp_cnt = n_distinct(emplid) - sum(termination_n),
-                attendance_emp = mean(attendance)) %>%
-      arrange(date) %>%
-      ungroup()
-    
-    ## Calculate next three month utilization rate
-    df_dept_rate_future <- df_dept_rate %>%
-      left_join(head_count,
-                by = c("div", "deptid", "sub_job_family")) %>%
-      replace_na(list(hc = 0,
-                      hc_pct = 1)) %>%
-      group_by(div, date, deptid, sub_job_family) %>%
-      mutate(add_hour = (total_hour_dept_func * proj_prop$hr_ratio) / (proj_prop$mon_ratio),
-             total_hour_by_dep_func_cal = (total_hour_dept_func + add_hour) * hc_pct,
-             uti_rate_cal = round(total_hour_by_dep_func_cal / (attendance_emp * emp_cnt + (attendance_emp * hc)), 2)) %>%
-      ungroup() %>%
-      distinct() %>%
-      group_by(div, date, deptid) %>%
-      mutate(uti_rate_cal_dept = sum(uti_rate_cal)) %>%
-      ungroup() %>%
-      distinct()
-    
-    ## Combine previous and future rate
-    out_dept <- df_dept_rate %>%
-      mutate(type = 'DEP') %>%
-      select(div, type, deptid) %>%
-      distinct() %>%
-      left_join(df_dept_rate %>%
-                  filter(date >= max(ymd(df_all$date)) %m-% months(5) & date <= max(ymd(df_all$date)) %m-% months(3)) %>%
-                  group_by(div, deptid, date) %>%
-                  summarise(uti_rate = round(mean(uti_rate), 2)) %>%
-                  ungroup() %>%
-                  spread(date, uti_rate),
-                by = c('div', 'deptid')) %>%
-      left_join(df_dept_rate_future %>%
-                  filter(date >= max(ymd(df_all$date)) %m-% months(2) & date <= max(ymd(df_all$date))) %>%
-                  group_by(div, deptid, date) %>%
-                  summarise(hc = mean(hc),
-                            uti_rate_cal_dept = round(mean(uti_rate_cal_dept), 2)) %>%
-                  ungroup() %>%
-                  spread(date, uti_rate_cal_dept),
-                by = c('div', 'deptid'))
-    out_dept[is.na(out_dept)] <- 0
-    names(out_dept) <- c('Div', 'Type', 'Title', 'b_1', 'b_2', 'b_3', 'hc', 'a_1', 'a_2', 'a_3')
-    
-    if (nrow(out_dept) != 0){
-      out_dept <- out_dept
-    } else{
-      out_dept <- df_dept_mon %>%
+        left_join(df_func_rate %>%
+                    filter(date >= max(ymd(df_all$date)) %m-% months(5) & date <= max(ymd(df_all$date))) %>%
+                    select(div, sub_job_family, date, uti_rate) %>%
+                    mutate(uti_rate = round(uti_rate, 2)) %>%
+                    spread(date, uti_rate),
+                  by = c('div', 'sub_job_family'))
+      out_func[is.na(out_func)] <- 0
+      names(out_func) <- c('Div', 'Type', 'Title', 'b_1', 'b_2', 'b_3', 'hc', 'a_1', 'a_2', 'a_3')
+      
+      if (nrow(out_func) != 0){
+        out_func <- out_func
+      } else{
+        out_func <- df_func_mon %>%
+          mutate(type = 'SUB') %>%
+          select(div, type, sub_job_family) %>%
+          distinct() %>%
+          rename(Div = div,
+                 Type = type,
+                 Title = sub_job_family) %>%
+          mutate(b_1 = 0, 
+                 b_2 = 0, 
+                 b_3 = 0, 
+                 hc = 0, 
+                 a_1 = 0, 
+                 a_2 = 0, 
+                 a_3 = 0)
+      }
+      
+      
+      #--------------#
+      #- Department -#
+      #--------------#
+      ## utilization rate
+      df_dept_rate <- df %>%
+        group_by(div, deptid, sub_job_family, date) %>%
+        summarise(uti_rate = mean(utilization_rate_by_dep_func),
+                  total_hour_dept_func = sum(total_hour),
+                  emp_cnt = n_distinct(emplid) - sum(termination_n),
+                  attendance_emp = mean(attendance)) %>%
+        arrange(date) %>%
+        ungroup()
+      
+      ## output table
+      out_dept <- df_dept_rate %>%
         mutate(type = 'DEP') %>%
         select(div, type, deptid) %>%
         distinct() %>%
-        rename(Div = div,
-               Type = type,
-               Title = deptid) %>%
-        mutate(b_1 = 0, 
-               b_2 = 0, 
-               b_3 = 0, 
-               hc = 0, 
-               a_1 = 0, 
-               a_2 = 0, 
-               a_3 = 0)
+        left_join(df_dept_rate %>%
+                    filter(date >= max(ymd(df_all$date)) %m-% months(5) & date <= max(ymd(df_all$date))) %>%
+                    group_by(div, deptid, date) %>%
+                    summarise(uti_rate = round(mean(uti_rate), 2)) %>%
+                    ungroup() %>%
+                    spread(date, uti_rate),
+                  by = c('div', 'deptid'))
+      out_dept[is.na(out_dept)] <- 0
+      names(out_dept) <- c('Div', 'Type', 'Title', 'b_1', 'b_2', 'b_3', 'hc', 'a_1', 'a_2', 'a_3')
+      
+      if (nrow(out_dept) != 0){
+        out_dept <- out_dept
+      } else{
+        out_dept <- df_dept_mon %>%
+          mutate(type = 'DEP') %>%
+          select(div, type, deptid) %>%
+          distinct() %>%
+          rename(Div = div,
+                 Type = type,
+                 Title = deptid) %>%
+          mutate(b_1 = 0, 
+                 b_2 = 0, 
+                 b_3 = 0, 
+                 hc = 0, 
+                 a_1 = 0, 
+                 a_2 = 0, 
+                 a_3 = 0)
+      }
+      
+      
+      #-----------------------------------#
+      #- Combine Department and Function -#
+      #-----------------------------------#
+      out <- bind_rows(out_dept,
+                       out_func)
+    } else{
+      #------------#
+      #- Function -#
+      #------------#
+      ## Previous utilization rate
+      df_func_rate <- df %>%
+        group_by(div, sub_job_family, date) %>%
+        summarise(uti_rate = mean(utilization_rate_by_div_func),
+                  total_hour_func = sum(total_hour),
+                  attendance_func = sum(attendance),
+                  emp_cnt = n_distinct(emplid) - sum(termination_n),
+                  attendance_emp = mean(attendance)) %>%
+        arrange(date) %>%
+        ungroup()
+      
+      ## New and Old project proportion
+      proj_prop <- df_proj %>%
+        filter(project_code == unique(df_prj$project_code_old)) %>%
+        select(project_code, execute_hour, execute_month, project_start_stage) %>%
+        mutate(hr_ratio = ifelse(unique(df_prj$execute_hour) == 0 | is.na(unique(df_prj$execute_hour)), 1, unique(df_prj$execute_hour) / execute_hour),
+               mon_ratio = ifelse(unique(df_prj$execute_month) == 0 | unique(df_prj$execute_month), 1, unique(df_prj$execute_month) / execute_month))
+      
+      ## Calculate next three month utilization rate
+      df_func_rate_future <- df_func_rate %>%
+        left_join(head_count %>%
+                    select(-deptid),
+                  by = c("div", "sub_job_family")) %>%
+        replace_na(list(hc = 0,
+                        hc_pct = 1)) %>%
+        group_by(div, date, sub_job_family) %>%
+        mutate(add_hour = (total_hour_func * proj_prop$hr_ratio) / (proj_prop$mon_ratio),
+               total_hour_by_func_cal = (total_hour_func + add_hour) * hc_pct,
+               uti_rate_cal = round(total_hour_by_func_cal / (attendance_func + (attendance_emp * hc)), 2)) %>%
+        ungroup() %>%
+        distinct()
+      
+      ## Combine previous and future rate
+      out_func <- df_func_rate %>%
+        mutate(type = 'SUB') %>%
+        select(div, type, sub_job_family) %>%
+        distinct() %>%
+        left_join(df_func_rate %>%
+                    filter(date >= max(ymd(df_all$date)) %m-% months(5) & date <= max(ymd(df_all$date)) %m-% months(3)) %>%
+                    select(div, sub_job_family, date, uti_rate) %>%
+                    mutate(uti_rate = round(uti_rate, 2)) %>%
+                    spread(date, uti_rate),
+                  by = c('div', 'sub_job_family')) %>%
+        left_join(df_func_rate_future %>%
+                    filter(date >= max(ymd(df_all$date)) %m-% months(2) & date <= max(ymd(df_all$date))) %>%
+                    select(div, sub_job_family, hc, date, uti_rate_cal) %>%
+                    mutate(uti_rate_cal = round(uti_rate_cal, 2)) %>%
+                    spread(date, uti_rate_cal),
+                  by = c('div', 'sub_job_family'))
+      out_func[is.na(out_func)] <- 0
+      names(out_func) <- c('Div', 'Type', 'Title', 'b_1', 'b_2', 'b_3', 'hc', 'a_1', 'a_2', 'a_3')
+      
+      if (nrow(out_func) != 0){
+        out_func <- out_func
+      } else{
+        out_func <- df_func_mon %>%
+          mutate(type = 'SUB') %>%
+          select(div, type, sub_job_family) %>%
+          distinct() %>%
+          rename(Div = div,
+                 Type = type,
+                 Title = sub_job_family) %>%
+          mutate(b_1 = 0, 
+                 b_2 = 0, 
+                 b_3 = 0, 
+                 hc = 0, 
+                 a_1 = 0, 
+                 a_2 = 0, 
+                 a_3 = 0)
+      }
+      
+      
+      #--------------#
+      #- Department -#
+      #--------------#
+      ## Previous utilization rate
+      df_dept_rate <- df %>%
+        group_by(div, deptid, sub_job_family, date) %>%
+        summarise(uti_rate = mean(utilization_rate_by_dep_func),
+                  total_hour_dept_func = sum(total_hour),
+                  emp_cnt = n_distinct(emplid) - sum(termination_n),
+                  attendance_emp = mean(attendance)) %>%
+        arrange(date) %>%
+        ungroup()
+      
+      ## Calculate next three month utilization rate
+      df_dept_rate_future <- df_dept_rate %>%
+        left_join(head_count,
+                  by = c("div", "deptid", "sub_job_family")) %>%
+        replace_na(list(hc = 0,
+                        hc_pct = 1)) %>%
+        group_by(div, date, deptid, sub_job_family) %>%
+        mutate(add_hour = (total_hour_dept_func * proj_prop$hr_ratio) / (proj_prop$mon_ratio),
+               total_hour_by_dep_func_cal = (total_hour_dept_func + add_hour) * hc_pct,
+               uti_rate_cal = round(total_hour_by_dep_func_cal / (attendance_emp * emp_cnt + (attendance_emp * hc)), 2)) %>%
+        ungroup() %>%
+        distinct() %>%
+        group_by(div, date, deptid) %>%
+        mutate(uti_rate_cal_dept = sum(uti_rate_cal)) %>%
+        ungroup() %>%
+        distinct()
+      
+      ## Combine previous and future rate
+      out_dept <- df_dept_rate %>%
+        mutate(type = 'DEP') %>%
+        select(div, type, deptid) %>%
+        distinct() %>%
+        left_join(df_dept_rate %>%
+                    filter(date >= max(ymd(df_all$date)) %m-% months(5) & date <= max(ymd(df_all$date)) %m-% months(3)) %>%
+                    group_by(div, deptid, date) %>%
+                    summarise(uti_rate = round(mean(uti_rate), 2)) %>%
+                    ungroup() %>%
+                    spread(date, uti_rate),
+                  by = c('div', 'deptid')) %>%
+        left_join(df_dept_rate_future %>%
+                    filter(date >= max(ymd(df_all$date)) %m-% months(2) & date <= max(ymd(df_all$date))) %>%
+                    group_by(div, deptid, date) %>%
+                    summarise(hc = mean(hc),
+                              uti_rate_cal_dept = round(mean(uti_rate_cal_dept), 2)) %>%
+                    ungroup() %>%
+                    spread(date, uti_rate_cal_dept),
+                  by = c('div', 'deptid'))
+      out_dept[is.na(out_dept)] <- 0
+      names(out_dept) <- c('Div', 'Type', 'Title', 'b_1', 'b_2', 'b_3', 'hc', 'a_1', 'a_2', 'a_3')
+      
+      if (nrow(out_dept) != 0){
+        out_dept <- out_dept
+      } else{
+        out_dept <- df_dept_mon %>%
+          mutate(type = 'DEP') %>%
+          select(div, type, deptid) %>%
+          distinct() %>%
+          rename(Div = div,
+                 Type = type,
+                 Title = deptid) %>%
+          mutate(b_1 = 0, 
+                 b_2 = 0, 
+                 b_3 = 0, 
+                 hc = 0, 
+                 a_1 = 0, 
+                 a_2 = 0, 
+                 a_3 = 0)
+      }
+      
+      
+      #-----------------------------------#
+      #- Combine Department and Function -#
+      #-----------------------------------#
+      out <- bind_rows(out_dept,
+                       out_func)
     }
-    
-    
-    #-----------------------------------#
-    #- Combine Department and Function -#
-    #-----------------------------------#
-    out <- bind_rows(out_dept,
-                     out_func)
-    
     return(out)
   }
 }
