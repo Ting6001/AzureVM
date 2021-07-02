@@ -54,8 +54,8 @@ print('==== After call R function ====')
 # Converting it back to a pandas dataframe.
 with localconverter(robjects.default_converter + pandas2ri.converter):
   df_result = robjects.conversion.rpy2py(df_result_r)
+  
 
 # df_result = pandas2ri.py2ri(df_result_r) # 舊寫法不能用了
-print(df_result)
 time_taken = round(time.process_time() - start,2)
 print('Take:', time_taken, 's')

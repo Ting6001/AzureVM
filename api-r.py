@@ -80,9 +80,11 @@ class WorkRate (Resource):
         with localconverter(robjects.default_converter + pandas2ri.converter):
             df_result = robjects.conversion.rpy2py(df_result_r)       
         print('======== Function return ==========')
-        df_result.fillna(0.0, inplace=True)
-        dic_result = df_result.to_dict('records')
-        print(dic_result)
+        dic_result = {}
+        if isinstance(df_result, pd.DataFrame):
+            df_result.fillna(0.0, inplace=True)
+            dic_result = df_result.to_dict('records')
+            print(dic_result)
         time_taken = round(time.process_time() - start,3)
         print('Take:', time_taken, 's')
         print('====================================================================================')
