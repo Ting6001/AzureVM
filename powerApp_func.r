@@ -23,7 +23,7 @@ hr_cal <- function(df_prj,
           dplyr.summarise.inform = FALSE)
   
   ###----- Load Data ------------------------------
-  df_all <- fread('./data/UtilizationRateInfo_0701.csv',
+  df_all <- fread('./data/UtilizationRateInfo.csv',
                   na.strings = c('', 'NA', NA, 'NULL'))
   
   if (is.na(division) == F){
