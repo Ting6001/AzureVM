@@ -57,7 +57,7 @@ class WorkRate (Resource):
         try:
             print('div:', div)
             #################  先把code放進來 debug 用 ####################################################
-            robjects.r.source("./powerApp_func_v10.r")
+            robjects.r.source("./powerApp_func_v11.R")
             function_r = robjects.globalenv['hr_cal']
 
             # === 將 Pandas.df 轉換成 R df ===
