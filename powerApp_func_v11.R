@@ -24,7 +24,7 @@ hr_cal <- function(df_prj,
   ## Do not show warnings & Suppress summarise info
   options(warn = -1,
           dplyr.summarise.inform = FALSE)
-
+  print('1')
   ###----- Load Data ------------------------------
   conn <- dbConnect(odbc(),
                     Driver = "ODBC Driver 17 for SQL Server",
@@ -32,13 +32,13 @@ hr_cal <- function(df_prj,
                     UID = "admia",
                     PWD = "Mia01@wistron",
                     database = "DB-mia")
-
+  print('2')
   # start_t = Sys.time()
   df_all = dbGetQuery(conn, "select * from [dbo].[UtilizationRateInfo]")
-
+  print('3')
   # Sys.time()-start_t   #45 secs
   dbDisconnect(conn)
-
+  print('4')
   if (is.na(division) == F){
     df <- df_all %>%
       filter(div == division)
