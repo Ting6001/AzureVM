@@ -12,36 +12,33 @@ hr_cal <- function(df_prj,
                 'DBI')
   
   ## Install packages not yet installed
+
   installed_packages <- packages %in% rownames(installed.packages())
   if (any(installed_packages == FALSE)) {
     install.packages(packages[!installed_packages])
   }
-  
+
   ## Packages loading
   invisible(lapply(packages, library, character.only = TRUE))
   
   ## Do not show warnings & Suppress summarise info
   options(warn = -1,
           dplyr.summarise.inform = FALSE)
-  
-  ###----- Load Data ------------------------------
   print('1')
-  odbc_driver = odbcListDrivers() %>%
-    filter(attribute == 'DriverODBCVer') %>%
-    filter(str_detect(name, '^ODBC'))
-  print(odbc_driver)
+  ###----- Load Data ------------------------------
   conn <- dbConnect(odbc(),
                     Driver = "ODBC Driver 17 for SQL Server",
                     Server = "sqlserver-mia.database.windows.net",
                     UID = "admia",
                     PWD = "Mia01@wistron",
                     database = "DB-mia")
-
+  print('2')
   # start_t = Sys.time()
   df_all = dbGetQuery(conn, "select * from [dbo].[UtilizationRateInfo]")
+  print('3')
   # Sys.time()-start_t   #45 secs
   dbDisconnect(conn)
-  
+  print('4')
   if (is.na(division) == F){
     df <- df_all %>%
       filter(div == division)
