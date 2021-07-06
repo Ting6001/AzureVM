@@ -56,7 +56,6 @@ class WorkRate (Resource):
             df_HC = df_HC.astype({'div':str, 'deptid':str, 'project_code':str})
         try:
             print('div:', div)
-            a = 1/0
             #################  先把code放進來 debug 用 ####################################################
             robjects.r.source("./powerApp_func.r")
             function_r = robjects.globalenv['hr_cal']
