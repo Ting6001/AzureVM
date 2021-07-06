@@ -12,18 +12,19 @@ hr_cal <- function(df_prj,
                 'DBI')
   
   ## Install packages not yet installed
+
   installed_packages <- packages %in% rownames(installed.packages())
   if (any(installed_packages == FALSE)) {
     install.packages(packages[!installed_packages])
   }
-  
+
   ## Packages loading
   invisible(lapply(packages, library, character.only = TRUE))
   
   ## Do not show warnings & Suppress summarise info
   options(warn = -1,
           dplyr.summarise.inform = FALSE)
-  
+
   ###----- Load Data ------------------------------
   conn <- dbConnect(odbc(),
                     Driver = "ODBC Driver 17 for SQL Server",
@@ -34,9 +35,10 @@ hr_cal <- function(df_prj,
 
   # start_t = Sys.time()
   df_all = dbGetQuery(conn, "select * from [dbo].[UtilizationRateInfo]")
+
   # Sys.time()-start_t   #45 secs
   dbDisconnect(conn)
-  
+
   if (is.na(division) == F){
     df <- df_all %>%
       filter(div == division)
