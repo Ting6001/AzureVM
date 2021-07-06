@@ -3,11 +3,17 @@ from flask_restful import Resource, Api,reqparse
 import random
 import pandas as pd
 import json
+import time
+from datetime import datetime
+import sys, traceback
+import pyodbc 
+
+
 # R
 import rpy2.robjects as robjects
 from rpy2.robjects import pandas2ri
 from rpy2.robjects.conversion import localconverter
-import time
+
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
@@ -18,6 +24,7 @@ class WorkRate (Resource):
     # parser.add_argument('email', required=True, help='Email is required')
     # parser = parser.add_argument('lst', type=str, location='json', action="append")
     parser = parser.add_argument('division', type=str, required=True,  help='div is required')
+    parser = parser.add_argument('user', type=str, required=True,  help='user is required')
     parser = parser.add_argument('data_Prj', type=dict, location='json', action="append", help='data Project info is required')
     parser = parser.add_argument('data_HC', type=dict, location='json', action="append", help='data Hc info is required')
 
@@ -36,6 +43,7 @@ class WorkRate (Resource):
             print('get data_Prj')
             print(arg['data_Prj'])
             print(df_prj)
+            # pandas DataFrame去除na，有na值的話，直接轉換會error
             df_prj.fillna("", inplace=True)
             df_prj = df_prj.astype({'project_code':str, 'project_code_old':str})
         if arg['data_HC']:   
@@ -43,106 +51,80 @@ class WorkRate (Resource):
             print('get data_HC')
             print(arg['data_HC'])
             print(df_HC)
+            # pandas DataFrame去除na，有na值的話，直接轉換會error
             df_HC = df_HC.drop(['save_time', 'user_id'], axis=1)
             df_HC = df_HC.astype({'div':str, 'deptid':str, 'project_code':str})
-        
-        print('div:', div)
-        # df_result = getWorkRate(div, df_prj, df_HC)
-        # print(df_result)
-        #################  先把code放進來 debug 用 ####################################################
-        robjects.r.source("./powerApp_func.r")
-        function_r = robjects.globalenv['hr_cal']
+        try:
+            print('div:', div)
+            a = 1/0
+            #################  先把code放進來 debug 用 ####################################################
+            robjects.r.source("./powerApp_func.r")
+            function_r = robjects.globalenv['hr_cal']
 
-        # pandas DataFrame去除na，有na值的話，直接轉換會error
-        # df = pd.read_excel("./data/powerapp_df.xlsx")
-        # print(df_prj)
-        # print(df_prj.isna())
-        # print(df_HC)
-        # print(df_HC.isna())
-        # print(df_prj.dtypes)
-        # print(df_HC.dtypes)
+            # === 將 Pandas.df 轉換成 R df ===
+            print('==== Transfer Pandas.df to R.df ====')
+            with localconverter(robjects.default_converter + pandas2ri.converter):
+                df_prj_r = robjects.conversion.py2rpy(df_prj)
+                df_HC_r = robjects.conversion.py2rpy(df_HC)
+    
+            # === 呼叫 R Function， return R df ===
+            print('==== Before R Functioin ====')
+            df_result_r = function_r(df_prj_r, df_HC_r, div)
+            print('==== Transfer R.df to Pandas.df ====')
+            # === 將 R df 轉換成  Pandas.df ===
+            with localconverter(robjects.default_converter + pandas2ri.converter):
+                df_result = robjects.conversion.rpy2py(df_result_r)       
+            print('======== Function return ==========')
+            dic_result = {}
+            if isinstance(df_result, pd.DataFrame):
+                df_result.fillna(0.0, inplace=True)
+                dic_result = df_result.to_dict('records')
+                print(dic_result)
+            time_taken = round(time.process_time() - start,3)
+            print('Take:', time_taken, 's')
+            print('====================================================================================')
+            return dic_result
+        except Exception as e:
+            query = 'INSERT INTO LogInfo (user_input, error_msg, save_time, user_id) VALUES (?,?,?,?)'
+            user_id = arg['user']
+            user_input = str(arg)
+            save_time = datetime.now()
+            
+            err_class = e.__class__.__name__ #取得錯誤類型
+            detail = e.args[0] #取得詳細內容
+            cl, exc, tb = sys.exc_info() #取得Call Stack
+            lastCallStack = traceback.extract_tb(tb)[-1] #取得Call Stack的最後一筆資料
 
-        # === 將 Pandas.df 轉換成 R df ===
-        print('==== Transfer Pandas.df to R.df ====')
-        with localconverter(robjects.default_converter + pandas2ri.converter):
-            df_prj_r = robjects.conversion.py2rpy(df_prj)
-            df_HC_r = robjects.conversion.py2rpy(df_HC)
-            # print(type(df_prj_r))
-            # print(type(df_HC_r))
-            # print(df_prj_r)
-            # print(df_HC_r)
-            # df_r = robjects.conversion.py2rpy(df)
-        # === 呼叫 R Function， return R df ===
-        print('==== Before R Functioin ====')
-        df_result_r = function_r(df_prj_r, df_HC_r, div)
-        print('==== Transfer R.df to Pandas.df ====')
-        # === 將 R df 轉換成  Pandas.df ===
-        with localconverter(robjects.default_converter + pandas2ri.converter):
-            df_result = robjects.conversion.rpy2py(df_result_r)       
-        print('======== Function return ==========')
-        dic_result = {}
-        if isinstance(df_result, pd.DataFrame):
-            df_result.fillna(0.0, inplace=True)
-            dic_result = df_result.to_dict('records')
-            print(dic_result)
-        time_taken = round(time.process_time() - start,3)
-        print('Take:', time_taken, 's')
-        print('====================================================================================')
-        return dic_result
+            fileName = lastCallStack[0] #取得發生的檔案名稱
+            lineNum = lastCallStack[1] #取得發生的行號
+            funcName = lastCallStack[2] #取得發生的函數名稱
+            err_msg = "File \"{}\", line {}, in {}: [{}] {}".format(fileName, lineNum, funcName, err_class, detail)
+            print(err_msg)
+            data = (user_input, err_msg, save_time, user_id)
+
+            conn, cursor = self.connect_db()
+            cursor.execute(query, data)
+            conn.commit()
+            self.close_db(conn, cursor)
 
         ##############################################################################################
         # 假資料區
-
-def getWorkRate(div, df_prj, df_HC):
-    import pandas as pd
-    import rpy2.robjects as robjects
-    from rpy2.robjects import pandas2ri
-    from rpy2.robjects.conversion import localconverter
-
-    # Defining the R script and loading the instance in Python
-    robjects.r.source("./powerApp_func.r")
-    # robjects.r.SayHi("John")
-
-    # Loading the function we have defined in R.
-    function_r = robjects.globalenv['hr_cal']
-
-    # Reading and processing data
-    # 讀取成Python的df
-    # df_prj = pd.read_csv("./data/df_prj.csv")
-    # df_HC = pd.read_csv("./data/df_HC.csv")
-    # div = "230000"
-
-    # pandas DataFrame去除na，有na值的話，直接轉換會error
-    df_prj.fillna("", inplace=True)
-    df_HC = df_HC.iloc[:,:-2]
-
-    # ================================
-    # === 將 Pandas.df 轉換成 R df ===
-    # ================================
-    #converting it into r object for passing into r function
-    with localconverter(robjects.default_converter + pandas2ri.converter):
-        df_prj_r = robjects.conversion.py2rpy(df_prj)
-        df_HC_r = robjects.conversion.py2rpy(df_HC)
-    # # df_prj_r = pandas2ri.py2ri(df_prj) # 舊寫法不能用了
-
-    # =====================================
-    # === 呼叫 R Function， return R df ===
-    # =====================================
-    #Invoking the R function and getting the result
-    df_result_r = function_r(df_prj_r, df_HC_r, div)
-
-    # ================================
-    # === 將 R df 轉換成  Pandas.df ===
-    # ================================
-    # Converting it back to a pandas dataframe.
-    with localconverter(robjects.default_converter + pandas2ri.converter):
-        df_result = robjects.conversion.rpy2py(df_result_r)
-
-    # df_result = pandas2ri.py2ri(df_result_r) # 舊寫法不能用了
-    df_
-    return df_result
-
-
+    def connect_db(self):
+        server = 'sqlserver-mia.database.windows.net' 
+        database = 'DB-mia' 
+        username = 'admia' 
+        password = 'Mia01@wistron' 
+        driver = '{ODBC Driver 17 for SQL Server}'
+        driver = '{SQL Server Native Client 11.0}'
+        conn = pyodbc.connect('DRIVER='+driver+';SERVER='+server+';DATABASE='+database+';UID='+username+';PWD='+ password)
+        cursor = conn.cursor()
+        print('Connect to DB')
+        return conn, cursor
+    def close_db(self, conn, cursor):
+        print('Close DB Connection')
+        cursor.close()
+        conn.close()
+        
 
 # api.add_resource(User, '/user/<string:name>')
 api.add_resource(WorkRate, '/workrate/')
