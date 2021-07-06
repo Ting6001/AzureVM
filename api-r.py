@@ -114,8 +114,11 @@ class WorkRate (Resource):
         database = 'DB-mia' 
         username = 'admia' 
         password = 'Mia01@wistron' 
-        driver = '{ODBC Driver 17 for SQL Server}'
-        driver = '{SQL Server Native Client 11.0}'
+        # driver = '{ODBC Driver 17 for SQL Server}'
+        # driver = '{SQL Server Native Client 11.0}'
+        drivers = [item for item in pyodbc.drivers()] # ['SQL Server', 'SQL Server Native Client 11.0', 'ODBC Driver 11 for SQL Server']
+        print('drivers:', drivers)
+        driver = drivers[-1]
         conn = pyodbc.connect('DRIVER='+driver+';SERVER='+server+';DATABASE='+database+';UID='+username+';PWD='+ password)
         cursor = conn.cursor()
         print('Connect to DB')
