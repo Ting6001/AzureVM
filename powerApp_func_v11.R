@@ -25,13 +25,9 @@ hr_cal <- function(df_prj,
           dplyr.summarise.inform = FALSE)
   
   ###----- Load Data ------------------------------
-  print('1')
-  print( odbcListDrivers())
-  print('2')
   odbc_driver = odbcListDrivers() %>%
     filter(attribute == 'DriverODBCVer') %>%
     filter(str_detect(name, '^ODBC'))
-  print(odbc_driver)
   conn <- dbConnect(odbc(),
                     Driver = "ODBC Driver 17 for SQL Server",
                     Server = "sqlserver-mia.database.windows.net",
