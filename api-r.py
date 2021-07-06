@@ -93,14 +93,13 @@ class WorkRate (Resource):
             detail = e.args[0] #取得詳細內容
             cl, exc, tb = sys.exc_info() #取得Call Stack
             lst_call_stack = traceback.extract_tb(tb)
-            print('@', traceback.format_exc())
-            print('@', lst_call_stack)
-            lastCallStack = lst_call_stack[-1] #取得Call Stack的最後一筆資料
+            err_msg = '【{}】 {}'.format(err_class, detail)
+            for CallStack in lst_call_stack:
+                fileName = CallStack[0] #取得發生的檔案名稱
+                lineNum = CallStack[1] #取得發生的行號
+                funcName = CallStack[2] #取得發生的函數名稱
+                err_msg += "\nFile \"{}\", line {}, in {}".format(fileName, lineNum, funcName)
 
-            fileName = lastCallStack[0] #取得發生的檔案名稱
-            lineNum = lastCallStack[1] #取得發生的行號
-            funcName = lastCallStack[2] #取得發生的函數名稱
-            err_msg = "File \"{}\", line {}, in {}: [{}] {}".format(fileName, lineNum, funcName, err_class, detail)
             print(err_msg)
             data = (user_input, err_msg, save_time, user_id)
 
