@@ -26,6 +26,8 @@ hr_cal <- function(df_prj,
   
   ###----- Load Data ------------------------------
   print('1')
+  print( odbcListDrivers())
+  print('2')
   odbc_driver = odbcListDrivers() %>%
     filter(attribute == 'DriverODBCVer') %>%
     filter(str_detect(name, '^ODBC'))
