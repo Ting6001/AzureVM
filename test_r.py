@@ -5,7 +5,7 @@ from rpy2.robjects.conversion import localconverter
 import time
 start = time.process_time()
 # Defining the R script and loading the instance in Python
-robjects.r.source("./powerApp_func.r")
+robjects.r.source("./powerApp_func_v10(2).r")
 # robjects.r.SayHi("John")
 
 # Loading the function we have defined in R.
@@ -52,10 +52,16 @@ print('==== After call R function ====')
 # === 將 R df 轉換成  Pandas.df ===
 # ================================
 # Converting it back to a pandas dataframe.
+print('==== Transfer R.df to Pandas.df ====')
 with localconverter(robjects.default_converter + pandas2ri.converter):
   df_result = robjects.conversion.rpy2py(df_result_r)
-  
-
+        
+print('======== Function return ==========')
+dic_result = {}
+if isinstance(df_result, pd.DataFrame):
+    df_result.fillna(0.0, inplace=True)
+    dic_result = df_result.to_dict('records')
+    print(dic_result)
 # df_result = pandas2ri.py2ri(df_result_r) # 舊寫法不能用了
 time_taken = round(time.process_time() - start,2)
 print('Take:', time_taken, 's')
