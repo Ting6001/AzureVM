@@ -1,0 +1,5 @@
+flask
+flask_restful
+rpy2==3.4.3
+pandas
+pyodbc
