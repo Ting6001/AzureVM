@@ -7,7 +7,7 @@ import numpy as np
 start = time.process_time()
 # Defining the R script and loading the instance in Python
 # robjects.r.source("./powerApp_func_v11.R")
-robjects.r.source("./powerApp_func_multi_v1.R")
+robjects.r.source("./powerApp_func_multi_v1.r")
 
 # robjects.r.SayHi("John")
 

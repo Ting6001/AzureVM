@@ -58,7 +58,7 @@ class WorkRate (Resource):
             print('div:', div)
             #################  先把code放進來 debug 用 ####################################################
             # robjects.r.source("./powerApp_func_v11.R")
-            robjects.r.source("./powerApp_func_multi_v1.R")
+            robjects.r.source("./powerApp_func_multi_v1.r")
             # function_r = robjects.globalenv['hr_cal']
             function_r = robjects.globalenv['hr_cal_multi']
 
@@ -73,7 +73,7 @@ class WorkRate (Resource):
             time_R_start = time.process_time()
 
             df_result_r = function_r(df_prj_r, df_HC_r, div)
-            
+
             time_taken_R = round(time.process_time() - time_R_start,3)
             print('==== Transfer R.df to Pandas.df ====')
             # === 將 R df 轉換成  Pandas.df ===
