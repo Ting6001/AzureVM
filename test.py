@@ -15,8 +15,8 @@ driver = '{ODBC Driver 17 for SQL Server}'
 drivers = [item for item in pyodbc.drivers()] # ['SQL Server', 'SQL Server Native Client 11.0', 'ODBC Driver 11 for SQL Server']
 driver = drivers[-1]
 print('drivers:', drivers)
-cnxn = pyodbc.connect('DRIVER='+driver+';SERVER='+server+';DATABASE='+database+';UID='+username+';PWD='+ password)
-cursor = cnxn.cursor()
+conn = pyodbc.connect('DRIVER='+driver+';SERVER='+server+';DATABASE='+database+';UID='+username+';PWD='+ password)
+cursor = conn.cursor()
 
 #Sample select query
 # cursor.execute("SELECT @@version;") 
@@ -53,8 +53,35 @@ cursor = cnxn.cursor()
 
 # row = cursor.fetchone()
 # cursor.execute(query,'000')
-query = 'select * from LogInfo'
-df = pd.read_sql(query, cnxn)
+lst_cols = ["emplid",
+"div",
+"deptid",
+"sub_job_family",
+"attendance",
+"project_code",
+"total_hour",
+"project_start_stage",
+"C0_day",
+"C1_day",
+"C2_day",
+"C3_day",
+"C4_day",
+"C5_day",
+"C6_day",
+"stage",
+"termination_n",
+"month_pf",
+"execute_day",
+"utilization_rate_by_dep_func",
+"utilization_rate_by_dep",
+"execute_hour",
+"execute_month",
+"utilization_rate_by_div_func",
+]
+query = 'select * from UtilizationRateInfo'
+df = pd.read_sql(query, conn)
+df = df.loc[:,lst_cols]
+df.to_csv('./data/UtilizationRateInfo_3.csv', index=False)
 print(df)
-
-
+cursor.close()
+conn.close()

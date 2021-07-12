@@ -3,18 +3,23 @@ import rpy2.robjects as robjects
 from rpy2.robjects import pandas2ri
 from rpy2.robjects.conversion import localconverter
 import time
+import numpy as np
 start = time.process_time()
 # Defining the R script and loading the instance in Python
-robjects.r.source("./powerApp_func_v11.R")
+# robjects.r.source("./powerApp_func_v11.R")
+robjects.r.source("./powerApp_func_multi_v1.R")
+
 # robjects.r.SayHi("John")
 
 # Loading the function we have defined in R.
-function_r = robjects.globalenv['hr_cal']
+# function_r = robjects.globalenv['hr_cal']
+function_r = robjects.globalenv['hr_cal_multi']
 
 # Reading and processing data
 # 讀取成Python的df
 df_prj = pd.read_csv("./data/df_prj.csv")
 df_HC = pd.read_csv("./data/df_HC.csv")
+# df_util = pd.read_csv("./data/UtilizationRateInfo_3.csv")
 div = "23R000"
 # print(df_prj)
 # print(df_HC)
@@ -22,12 +27,23 @@ div = "23R000"
 # print(df_HC.dtypes)
 # print('===============================================')
 # pandas DataFrame去除na，有na值的話，直接轉換會error
-df_prj.fillna("", inplace=True)
+print(df_prj.isna())
+# df_prj.fillna("", inplace=True)
 df_HC = df_HC.iloc[:,:-2]
 # print(df_prj)
 # print(df_prj.isna())
 # print(df_HC)
 # print(df_HC.isna())
+lst_str = ["emplid",
+"div",
+"deptid",
+"sub_job_family",
+"project_code",
+"project_start_stage",
+"stage"
+]
+dic_type = {'str':lst_str}
+dic_str = { i : str for i in lst_str}
 df_prj = df_prj.astype({'project_code':str, 'project_code_old':str})
 df_HC = df_HC.astype({'div':str, 'deptid':str, 'project_code':str})
 print(df_prj)
