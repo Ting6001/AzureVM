@@ -58,7 +58,7 @@ class WorkRate (Resource):
             print('div:', div)
             #################  先把code放進來 debug 用 ####################################################
             # robjects.r.source("./powerApp_func_v11.R")
-            robjects.r.source("./powerApp_func_multi_v2.r")
+            robjects.r.source("./powerApp_func_multi_v2.R")
             # function_r = robjects.globalenv['hr_cal']
             function_r = robjects.globalenv['hr_cal_multi']
 

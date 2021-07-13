@@ -10,7 +10,7 @@ for i in range(1):
   start = time.process_time()
   # Defining the R script and loading the instance in Python
   # robjects.r.source("./powerApp_func_v11.R")
-  robjects.r.source("./powerApp_func_multi_v2.r")
+  robjects.r.source("./powerApp_func_multi_v2.R")
 
   # robjects.r.SayHi("John")
 
