@@ -1,6 +1,6 @@
 hr_cal_multi <- function(df_prj,
-                   df_hc,
-                   division = NA){
+                         df_hc,
+                         division = NA){
   ## Package names
   packages <- c('data.table', 
                 'tidyverse', 
@@ -39,6 +39,9 @@ hr_cal_multi <- function(df_prj,
   df_all = dbGetQuery(conn, "select * from [dbo].[UtilizationRateInfo]")
   dbDisconnect(conn)
   
+  ## When sub job family is ('AR', 'HW', 'OP', 'RF', 'RX') replace by 'RH'
+  df_all <- df_all %>%
+    mutate(sub_job_family = ifelse(sub_job_family %in% c('AR', 'HW', 'OP', 'RF', 'RX'), 'RH', sub_job_family))
   
   if (is.na(division) == F){
     df <- df_all %>%
@@ -65,15 +68,16 @@ hr_cal_multi <- function(df_prj,
   ## settings
   if (sum(dim(df_hc)) != 0){
     head_count <- df_hc %>%
-      mutate(HC = as.numeric(HC)) %>%
-      group_by(div, deptid, project_code, sub_job_family) %>%
+      mutate(HC = as.numeric(HC),
+             sub_job_family = ifelse(sub_job_family %in% c('AR', 'HW', 'OP', 'RF', 'RX'), 'RH', sub_job_family)) %>%
+      group_by(div, deptid, project_code, project_name, sub_job_family) %>%
       summarise(hc = sum(HC)) %>%
       ungroup() %>%
       group_by(project_code, sub_job_family) %>%
       mutate(hc_pct = hc / sum(hc)) %>%
       ungroup()
   } else{
-    head_count <- data.frame(div = NA, deptid = NA, project_code = NA, sub_job_family = NA, hc = 0, hc_pct = 0)
+    head_count <- data.frame(div = NA, deptid = NA, project_code = NA, project_name = NA, sub_job_family = NA, hc = 0, hc_pct = 0)
   }
   
   
@@ -226,9 +230,9 @@ hr_cal_multi <- function(df_prj,
       
       ## New and Old project proportion
       proj_prop <- data.frame()
-      for (newcd in unique(df_prj$project_code)){
+      for (newname in unique(df_prj$project_name)){
         df_tmp <- df_prj %>%
-          filter(project_code == newcd)
+          filter(project_name == newname)
         
         proj_tmp <- data.frame()
         for (pcode in unique(df_tmp$project_code_old)){
@@ -251,15 +255,15 @@ hr_cal_multi <- function(df_prj,
       
       ## Calculate next three month utilization rate
       df_func_rate_future <- data.frame()
-      for (newcd in unique(df_prj$project_code)){
-        pcode = df_prj$project_code_old[df_prj$project_code == newcd]
+      for (newname in unique(df_prj$project_name)){
+        pcode = df_prj$project_code_old[df_prj$project_name == newname]
         
         hc_tmp <- head_count %>%
-          filter(project_code == newcd) %>%
+          filter(project_name == newname) %>%
           select(-deptid)
         
         if (nrow(hc_tmp) == 0){
-          hc_tmp <- data.frame(div = NA, project_code = NA, sub_job_family = NA, hc = NA, hc_pct = NA)
+          hc_tmp <- data.frame(div = NA, project_code = NA, project_name = NA, sub_job_family = NA, hc = NA, hc_pct = NA)
         }
         
         
@@ -268,14 +272,33 @@ hr_cal_multi <- function(df_prj,
         
         rate_tmp <- data.frame()
         for (n in nrow(proj_prop_tmp)){
+          df_proj_hour <- df_all %>%
+            filter(project_code == proj_prop_tmp$project_code[n]) %>%
+            group_by(project_code, sub_job_family, date) %>%
+            summarise(total_hour_pro_func = sum(total_hour)) %>%
+            arrange(date) %>%
+            ungroup() %>%
+            mutate(add_hour = (total_hour_pro_func * proj_prop_tmp$hr_ratio[n]) / (proj_prop_tmp$mon_ratio[n])) %>%
+            group_by(project_code, sub_job_family) %>%
+            mutate(n = row_number()) %>%
+            ungroup() %>%
+            filter(n <= 3) %>%
+            mutate(date = case_when(n == 1 ~ max(ymd(df_all$date)) %m-% months(2),
+                                    n == 2 ~ max(ymd(df_all$date)) %m-% months(1),
+                                    n == 3 ~ max(ymd(df_all$date)),
+                                    TRUE ~ ymd(date))) %>%
+            select(-n)
+          
           rate_tmp1 <- df_func_rate %>%
             left_join(hc_tmp,
                       by = c("div", "sub_job_family")) %>%
             replace_na(list(hc = 0,
                             hc_pct = 1)) %>%
+            left_join(df_proj_hour %>%
+                        select(-project_code),
+                      by = c('sub_job_family', 'date')) %>%
             group_by(div, date, sub_job_family) %>%
-            mutate(add_hour = (total_hour_func * proj_prop_tmp$hr_ratio[n]) / (proj_prop_tmp$mon_ratio[n]),
-                   add_hour_pct = add_hour * hc_pct,
+            mutate(add_hour_pct = add_hour * hc_pct,
                    add_attendance_emp = (attendance_emp * hc)) %>%
             ungroup() %>%
             distinct()
@@ -354,13 +377,13 @@ hr_cal_multi <- function(df_prj,
       
       ## Calculate next three month utilization rate
       df_dept_rate_future <- data.frame()
-      for (newcd in unique(df_prj$project_code)){
-        pcode = df_prj$project_code_old[df_prj$project_code == newcd]
+      for (newname in unique(df_prj$project_name)){
+        pcode = df_prj$project_code_old[df_prj$project_name == newname]
         
         hc_tmp <- head_count %>%
-          filter(project_code == newcd)
+          filter(project_name == newname)
         if (nrow(hc_tmp) == 0){
-          hc_tmp <- data.frame(div = NA, deptid = NA, project_code = NA, sub_job_family = NA, hc = NA, hc_pct = NA)
+          hc_tmp <- data.frame(div = NA, deptid = NA, project_code = NA, project_name = NA, sub_job_family = NA, hc = NA, hc_pct = NA)
         }
         
         
@@ -369,14 +392,33 @@ hr_cal_multi <- function(df_prj,
         
         rate_tmp <- data.frame()
         for (n in nrow(proj_prop_tmp)){
+          df_proj_hour <- df_all %>%
+            filter(project_code == proj_prop_tmp$project_code[n]) %>%
+            group_by(project_code, sub_job_family, date) %>%
+            summarise(total_hour_pro_func = sum(total_hour)) %>%
+            arrange(date) %>%
+            ungroup() %>%
+            mutate(add_hour = (total_hour_pro_func * proj_prop_tmp$hr_ratio[n]) / (proj_prop_tmp$mon_ratio[n])) %>%
+            group_by(project_code, sub_job_family) %>%
+            mutate(n = row_number()) %>%
+            ungroup() %>%
+            filter(n <= 3) %>%
+            mutate(date = case_when(n == 1 ~ max(ymd(df_all$date)) %m-% months(2),
+                                    n == 2 ~ max(ymd(df_all$date)) %m-% months(1),
+                                    n == 3 ~ max(ymd(df_all$date)),
+                                    TRUE ~ ymd(date))) %>%
+            select(-n)
+          
           rate_tmp1 <- df_dept_rate %>%
             left_join(hc_tmp,
                       by = c("div", "deptid", "sub_job_family")) %>%
             replace_na(list(hc = 0,
                             hc_pct = 1)) %>%
+            left_join(df_proj_hour %>%
+                        select(-project_code),
+                      by = c('sub_job_family', 'date')) %>%
             group_by(div, date, deptid, sub_job_family) %>%
-            mutate(add_hour = (total_hour_dept_func * proj_prop_tmp$hr_ratio[n]) / (proj_prop_tmp$mon_ratio[n]),
-                   add_hour_pct = add_hour * hc_pct,
+            mutate(add_hour_pct = add_hour * hc_pct,
                    add_attendance_emp = (attendance_emp * hc)) %>%
             ungroup() %>%
             distinct()
