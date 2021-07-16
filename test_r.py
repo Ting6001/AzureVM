@@ -28,11 +28,11 @@ function_r = robjects.globalenv['hr_cal_multi']
 div = "23R000"
 user = "001"
 
-# path_file = './data/all_proj_add_1.xlsx'
-# df_allProj = pd.read_excel(path_file, engine='openpyxl')
+path_file = './data/Utilization_Add1proj.xlsx'
+df_allProj = pd.read_excel(path_file, engine='openpyxl')
 
 # df_allProj = pd.DataFrame(columns=['No', 'project_code', 'Div', 'Type', 'Title', 'b_1', 'b_2', 'b_3', 'hc', 'a_1', 'a_2', 'a_3'])
-lst_div = ['23D000', '23M000', '23P000', '23R000']
+lst_div = ['23D000', '23M000', '23R000']
 
 with open ('./data/project_code.txt', 'r') as f:
   lst_project_code = f.read().split('\n')
@@ -40,7 +40,7 @@ with open ('./data/project_code.txt', 'r') as f:
 count_project = len(lst_project_code)
 for i, project_code in enumerate(tqdm(['1PD00T550001'])):
   # project_code = ""
-  # if i+1 <= 38:
+  # if i+1 <= 25:
   #   continue
   start = time.process_time()
   lst_prj = [
@@ -89,10 +89,10 @@ for i, project_code in enumerate(tqdm(['1PD00T550001'])):
   # =====================================
   # === 呼叫 R Function， return R df ===
   # =====================================
-  # print('==== Before call R function ====')
+  print('==== Before call R function ====')
   try:
     df_result_r = function_r(df_prj_r, df_HC_r, div)
-    # print('==== After call R function ====')
+    print('==== After call R function ====')
     # ================================
     # === 將 R df 轉換成  Pandas.df ===
     # ================================
@@ -101,18 +101,17 @@ for i, project_code in enumerate(tqdm(['1PD00T550001'])):
       df_result = robjects.conversion.rpy2py(df_result_r)
             
     # print('======== Function return ==========')
-    print(df_result)
     dic_result = {}
     if isinstance(df_result, pd.DataFrame):
         df_result.fillna(0.0, inplace=True)
         dic_result = df_result.to_dict('records')
-        print(dic_result)
+        # print(dic_result)
         df_result['No'] = i+1
         df_result['project_code'] = project_code
         for j in range(1,4):
           df_result['a_'+str(j)] = df_result['a_'+str(j)].apply(lambda x: x*100)
           df_result['b_'+str(j)] = df_result['b_'+str(j)].apply(lambda x: x*100)
-        # df_allProj = df_allProj.append(df_result)
+        df_allProj = df_allProj.append(df_result)
 
     time_taken = round(time.process_time() - start,2)
     print('Take:', time_taken, 's', i+1, project_code)
@@ -135,7 +134,7 @@ time_total = round(time.process_time() - start_begin, 2)
 print('Total Time take:', time_total, 's')
 print(lst_time)
 # print(df_allProj)
-# df_allProj.to_excel(path_file, index=False)
+df_allProj.to_excel(path_file, index=False)
 
 # print(lst_time)
 # print('average:', round(sum(lst_time)/len(lst_time), 3), 's')

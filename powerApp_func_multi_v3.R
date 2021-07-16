@@ -271,14 +271,14 @@ hr_cal_multi <- function(df_prj,
           filter(project_code == pcode)
         
         rate_tmp <- data.frame()
-        for (n in nrow(proj_prop_tmp)){
+        for (i in 1:nrow(proj_prop_tmp)){
           df_proj_hour <- df_all %>%
-            filter(project_code == proj_prop_tmp$project_code[n]) %>%
+            filter(project_code == proj_prop_tmp$project_code[i]) %>%
             group_by(project_code, sub_job_family, date) %>%
             summarise(total_hour_pro_func = sum(total_hour)) %>%
             arrange(date) %>%
             ungroup() %>%
-            mutate(add_hour = (total_hour_pro_func * proj_prop_tmp$hr_ratio[n]) / (proj_prop_tmp$mon_ratio[n])) %>%
+            mutate(add_hour = (total_hour_pro_func * proj_prop_tmp$hr_ratio[i]) / (proj_prop_tmp$mon_ratio[i])) %>%
             group_by(project_code, sub_job_family) %>%
             mutate(n = row_number()) %>%
             ungroup() %>%
@@ -313,9 +313,9 @@ hr_cal_multi <- function(df_prj,
           group_by(div, date, sub_job_family) %>%
           summarise(total_hour_func = unique(total_hour_func),
                     attendance_func = unique(attendance_func),
-                    add_hour_pct = sum(add_hour_pct),
-                    add_attendance_emp = sum(add_attendance_emp),
-                    hc = sum(hc), 
+                    add_hour_pct = sum(add_hour_pct, na.rm = T),
+                    add_attendance_emp = sum(add_attendance_emp, na.rm = T),
+                    hc = sum(hc, na.rm = T), 
                     
                     total_hour_by_func_cal = (total_hour_func + add_hour_pct),
                     uti_rate_cal = round(total_hour_by_func_cal / (attendance_func + add_attendance_emp), 2)) %>%
@@ -391,14 +391,14 @@ hr_cal_multi <- function(df_prj,
           filter(project_code == pcode)
         
         rate_tmp <- data.frame()
-        for (n in nrow(proj_prop_tmp)){
+        for (i in 1:nrow(proj_prop_tmp)){
           df_proj_hour <- df_all %>%
-            filter(project_code == proj_prop_tmp$project_code[n]) %>%
+            filter(project_code == proj_prop_tmp$project_code[i]) %>%
             group_by(project_code, sub_job_family, date) %>%
             summarise(total_hour_pro_func = sum(total_hour)) %>%
             arrange(date) %>%
             ungroup() %>%
-            mutate(add_hour = (total_hour_pro_func * proj_prop_tmp$hr_ratio[n]) / (proj_prop_tmp$mon_ratio[n])) %>%
+            mutate(add_hour = (total_hour_pro_func * proj_prop_tmp$hr_ratio[i]) / (proj_prop_tmp$mon_ratio[i])) %>%
             group_by(project_code, sub_job_family) %>%
             mutate(n = row_number()) %>%
             ungroup() %>%
@@ -433,9 +433,9 @@ hr_cal_multi <- function(df_prj,
           summarise(total_hour_dept_func = unique(total_hour_dept_func),
                     attendance_emp = unique(attendance_emp),
                     emp_cnt = unique(emp_cnt),
-                    add_hour_pct = sum(add_hour_pct),
-                    add_attendance_emp = sum(add_attendance_emp),
-                    hc = sum(hc),
+                    add_hour_pct = sum(add_hour_pct, na.rm = T),
+                    add_attendance_emp = sum(add_attendance_emp, na.rm = T),
+                    hc = sum(hc, na.rm = T),
                     
                     total_hour_by_dep_func_cal = (total_hour_dept_func + add_hour_pct),
                     uti_rate_cal_dept = round(total_hour_by_dep_func_cal / (attendance_emp * emp_cnt + add_attendance_emp), 2)) %>%
