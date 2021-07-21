@@ -50,7 +50,7 @@ hr_cal_multi <- function(df_prj,
   
   ## Project stage days (all Divisions)
   df_proj <- df_all %>%
-    filter(pmcs_bu_start_dt >= as.character(min(df_all$date))) %>%  ## 篩選 專案起始日期(pmcs_bu_start_dt) > min(該筆資料年月日date)
+    filter(pmcs_bu_start_dt >= as.character(min(df_all$date))) %>%
     group_by(project_code) %>%
     summarise(C0 = mean(C0_day),
               C1 = mean(C1_day),
@@ -59,8 +59,8 @@ hr_cal_multi <- function(df_prj,
               C4 = mean(C4_day),
               C5 = mean(C5_day),
               C6 = mean(C6_day),
-              execute_hour = mean(execute_hour),   ## 取平均：C0~C6、執行時數、執行月數
-              execute_month = mean(execute_month), ## 取最大：執行日數
+              execute_hour = mean(execute_hour),
+              execute_month = mean(execute_month),
               execute_day = max(execute_day),
               project_start_stage = unique(project_start_stage)) %>%
     ungroup()
@@ -80,32 +80,44 @@ hr_cal_multi <- function(df_prj,
     head_count <- data.frame(div = NA, deptid = NA, project_code = NA, project_name = NA, sub_job_family = NA, hc = 0, hc_pct = 0)
   }
   
+  ## utilization rate by function
+  df_func_rate <- df %>%
+    # filter(pmcs_bu_start_dt >= as.character(min(df_all$date))) %>%
+    group_by(div, sub_job_family, date) %>%
+    summarise(uti_rate = mean(utilization_rate_by_div_func),
+              total_hour_func = sum(total_hour),
+              attendance_func = sum(attendance),
+              emp_cnt = n_distinct(emplid) - sum(termination_n),
+              attendance_emp = mean(attendance)) %>%
+    arrange(date) %>%
+    ungroup()
   
+  ## utilization rate by department
+  df_dept_rate <- df %>%
+    group_by(div, deptid, sub_job_family, date) %>%
+    summarise(uti_rate = mean(utilization_rate_by_dep),
+              total_hour_dept_func = sum(total_hour),
+              emp_cnt = n_distinct(emplid) - sum(termination_n),
+              attendance_emp = mean(attendance)) %>%
+    arrange(date) %>%
+    ungroup()
+  
+  
+
   ###----- Calculate ------------------------------
-  if (length(setdiff(df_prj$project_code_old, df_proj$project_code)) != 0){ # 確認PowerApps 所選專案有在篩出來的df_proj裡面 專案起始日期(pmcs_bu_start_dt) > min(該筆資料年月日date)
+  if (length(setdiff(df_prj$project_code_old, df_proj$project_code)) != 0){
     print('Invalid project code!!')
   } else {
     if (sum(dim(df_prj)) == 0){
       #------------#
       #- Function -#
       #------------#
-      ## utilization rate
-      df_func_rate <- df %>%                                            ## df：以所選div，篩選出的資料
-        group_by(div, sub_job_family, date) %>%                         ## group by (處級、次職類、該筆資料年月日)
-        summarise(uti_rate = mean(utilization_rate_by_div_func),        ## 工時率 = Avg(當月處底下"次職類"工時使用率utilization_rate_by_div_func)
-                  total_hour_func = sum(total_hour),                    ## 加總  ：個人每月PTS專案總工時(total_hour)、應到班工時
-                  attendance_func = sum(attendance),
-                  emp_cnt = n_distinct(emplid) - sum(termination_n),    ## 每個月的員工數：該月員工ID數 - 該月預計離職人數
-                  attendance_emp = mean(attendance)) %>%                ## 平均值：該月應到班工時(attendance)
-        arrange(date) %>%
-        ungroup()
-      
       ## output table
       out_func <- df_func_rate %>%
         mutate(type = 'SUB') %>%
         select(div, type, sub_job_family) %>%
-        distinct() %>%                                                   ## 取出 計算過去三個月工時率 的資料(目前7月的話, 取456)
-        left_join(df_func_rate %>%                                       ## max(date)到未來第三個月(目前7月的話,未來是789)
+        distinct() %>%
+        left_join(df_func_rate %>%
                     filter(date >= max(ymd(df_all$date)) %m-% months(5) & date <= max(ymd(df_all$date)) %m-% months(3)) %>%
                     select(div, sub_job_family, date, uti_rate) %>%
                     mutate(uti_rate = round(uti_rate, 2)) %>%
@@ -114,7 +126,7 @@ hr_cal_multi <- function(df_prj,
         left_join(head_count %>%
                     select(-c(deptid, hc_pct)),
                   by = c("div", "sub_job_family")) %>%
-        left_join(df_func_rate %>%                                      ## 取出 計算未來三個月工時率 的資料(目前7月的話, 取789)
+        left_join(df_func_rate %>%
                     filter(date >= max(ymd(df_all$date)) %m-% months(2) & date <= max(ymd(df_all$date))) %>%
                     select(div, sub_job_family, date, uti_rate) %>%
                     mutate(uti_rate = round(uti_rate, 2)) %>%
@@ -146,21 +158,11 @@ hr_cal_multi <- function(df_prj,
       #--------------#
       #- Department -#
       #--------------#
-      ## utilization rate
-      df_dept_rate <- df %>%
-        group_by(div, deptid, sub_job_family, date) %>%
-        summarise(uti_rate = mean(utilization_rate_by_dep_func),    ## 工時率 = Avg(每月部門次職類專案工時使用率 utilization_rate_by_dep_func)
-                  total_hour_dept_func = sum(total_hour),
-                  emp_cnt = n_distinct(emplid) - sum(termination_n),
-                  attendance_emp = mean(attendance)) %>%
-        arrange(date) %>%
-        ungroup()
-      
       ## output table
       out_dept <- df_dept_rate %>%
         mutate(type = 'DEP') %>%
         select(div, type, deptid) %>%
-        distinct() %>%                                                   ## 取出 計算過去三個月工時率 的資料(目前7月的話, 取456)
+        distinct() %>%
         left_join(df_dept_rate %>%
                     filter(date >= max(ymd(df_all$date)) %m-% months(5) & date <= max(ymd(df_all$date)) %m-% months(3)) %>%
                     group_by(div, deptid, date) %>%
@@ -172,7 +174,7 @@ hr_cal_multi <- function(df_prj,
                     group_by(div, deptid) %>%
                     summarise(hc = sum(hc)),
                   by = c("div", "deptid")) %>%
-        left_join(df_dept_rate %>%                                      ## 取出 計算未來三個月工時率 的資料(目前7月的話, 取789)
+        left_join(df_dept_rate %>%
                     filter(date >= max(ymd(df_all$date)) %m-% months(2) & date <= max(ymd(df_all$date))) %>%
                     group_by(div, deptid, date) %>%
                     summarise(uti_rate = round(mean(uti_rate), 2)) %>%
@@ -207,7 +209,7 @@ hr_cal_multi <- function(df_prj,
       #-----------------------------------#
       out <- bind_rows(out_dept,
                        out_func)
-    } else{  ## ============================ 【有新增專案 的工時率計算】 ============================ 
+    } else{
       ## Only calculate have both new and old project
       df_prj <- df_prj %>%
         filter(!(is.na(project_code) | project_code == ''),
@@ -217,17 +219,6 @@ hr_cal_multi <- function(df_prj,
       #------------#
       #- Function -#
       #------------#
-      ## Previous utilization rate
-      df_func_rate <- df %>%                                               ## df：以所選div，篩選出的資料
-        group_by(div, sub_job_family, date) %>%                            ## group by (處級、次職類、該筆資料年月日)
-        summarise(uti_rate = mean(utilization_rate_by_div_func),           ## 工時率 = Avg(當月處底下"次職類"工時使用率utilization_rate_by_div_func)
-                  total_hour_func = sum(total_hour),                       ## 加總  ：執行時數、應到班工時
-                  attendance_func = sum(attendance),                        
-                  emp_cnt = n_distinct(emplid) - sum(termination_n),       ## 每個月的員工數：該月員工ID數 - 該月預計離職人數
-                  attendance_emp = mean(attendance)) %>%                   ## 平均值：該月應到班工時(attendance)
-        arrange(date) %>%
-        ungroup()
-      
       ## New and Old project proportion
       proj_prop <- data.frame()
       for (newname in unique(df_prj$project_name)){
@@ -239,8 +230,8 @@ hr_cal_multi <- function(df_prj,
           df_tmp1 <- df_tmp %>%
             filter(project_code_old == pcode)
           
-          tmp <- df_proj %>%                                              ## df_proj：篩選 專案起始日期(pmcs_bu_start_dt) > min(該筆資料年月日date)
-            filter(project_code == pcode) %>%                             ## 執行月數、執行時數=0 比例：1，其它情況：比例=新專案/舊專案
+          tmp <- df_proj %>%
+            filter(project_code == pcode) %>%
             select(project_code, execute_hour, execute_month, project_start_stage) %>%
             mutate(hr_ratio = ifelse(unique(df_tmp1$execute_hour) %in% c(0, '') | is.na(unique(df_tmp1$execute_hour)), 1, unique(df_tmp1$execute_hour) / execute_hour),
                    mon_ratio = ifelse(unique(df_tmp1$execute_month) %in% c(0, '') | is.na(unique(df_tmp1$execute_month)), 1, unique(df_tmp1$execute_month) / execute_month))
@@ -254,12 +245,12 @@ hr_cal_multi <- function(df_prj,
       }
       
       ## Calculate next three month utilization rate
-      df_func_rate_future <- data.frame() 
+      df_func_rate_future <- data.frame()
       for (newname in unique(df_prj$project_name)){
         pcode = df_prj$project_code_old[df_prj$project_name == newname]
         
         hc_tmp <- head_count %>%
-          filter(project_name == newname) %>%                           ## 取出該新專案 所新增的HC數
+          filter(project_name == newname) %>%
           select(-deptid)
         
         if (nrow(hc_tmp) == 0){
@@ -277,7 +268,7 @@ hr_cal_multi <- function(df_prj,
             group_by(project_code, sub_job_family, date) %>%
             summarise(total_hour_pro_func = sum(total_hour)) %>%
             arrange(date) %>%
-            ungroup() %>%                                        ## 增加的時數 = DB裡每個月總時數 * 新舊專案工時比例 / 新舊專案月數比例？
+            ungroup() %>%
             mutate(add_hour = (total_hour_pro_func * proj_prop_tmp$hr_ratio[i]) / (proj_prop_tmp$mon_ratio[i])) %>%
             group_by(project_code, sub_job_family) %>%
             mutate(n = row_number()) %>%
@@ -298,8 +289,8 @@ hr_cal_multi <- function(df_prj,
                         select(-project_code),
                       by = c('sub_job_family', 'date')) %>%
             group_by(div, date, sub_job_family) %>%
-            mutate(add_hour_pct = add_hour * hc_pct,                     ## 增加的時數pct = 增加的時數 * hc_pct？??????
-                   add_attendance_emp = (attendance_emp * hc)) %>%       ## 新增的應到工時 = 平均該月應到班工時(attendance_emp) * HC數
+            mutate(add_hour_pct = add_hour * hc_pct,
+                   add_attendance_emp = (attendance_emp * hc)) %>%
             ungroup() %>%
             distinct()
           
@@ -317,7 +308,7 @@ hr_cal_multi <- function(df_prj,
                     add_attendance_emp = sum(add_attendance_emp, na.rm = T),
                     hc = sum(hc, na.rm = T), 
                     
-                    total_hour_by_func_cal = (total_hour_func + add_hour_pct),  ## 總工時 = DB裡每月的總工時 + 新增工時pct ???????????????
+                    total_hour_by_func_cal = (total_hour_func + add_hour_pct),
                     uti_rate_cal = round(total_hour_by_func_cal / (attendance_func + add_attendance_emp), 2)) %>%
           ungroup()
       }
@@ -365,16 +356,6 @@ hr_cal_multi <- function(df_prj,
       #--------------#
       #- Department -#
       #--------------#
-      ## Previous utilization rate
-      df_dept_rate <- df %>%
-        group_by(div, deptid, sub_job_family, date) %>%
-        summarise(uti_rate = mean(utilization_rate_by_dep_func),
-                  total_hour_dept_func = sum(total_hour),
-                  emp_cnt = n_distinct(emplid) - sum(termination_n),
-                  attendance_emp = mean(attendance)) %>%
-        arrange(date) %>%
-        ungroup()
-      
       ## Calculate next three month utilization rate
       df_dept_rate_future <- data.frame()
       for (newname in unique(df_prj$project_name)){
@@ -426,12 +407,13 @@ hr_cal_multi <- function(df_prj,
           rate_tmp <- bind_rows(rate_tmp,
                                 rate_tmp1)
         }
+        
         df_dept_rate_future <- bind_rows(df_dept_rate_future,
                                          rate_tmp) %>%
-          group_by(div, date, deptid, sub_job_family) %>%
-          summarise(total_hour_dept_func = unique(total_hour_dept_func),
-                    attendance_emp = unique(attendance_emp),
-                    emp_cnt = unique(emp_cnt),
+          group_by(div, date, deptid) %>%
+          summarise(total_hour_dept_func = sum(total_hour_dept_func),
+                    attendance_emp = sum(attendance_emp),
+                    emp_cnt = sum(emp_cnt),
                     add_hour_pct = sum(add_hour_pct, na.rm = T),
                     add_attendance_emp = sum(add_attendance_emp, na.rm = T),
                     hc = sum(hc, na.rm = T),
@@ -440,7 +422,7 @@ hr_cal_multi <- function(df_prj,
                     uti_rate_cal_dept = round(total_hour_by_dep_func_cal / (attendance_emp * emp_cnt + add_attendance_emp), 2)) %>%
           ungroup()
       }
-
+      
       ## Combine previous and future rate
       out_dept <- df_dept_rate %>%
         mutate(type = 'DEP') %>%
@@ -463,7 +445,7 @@ hr_cal_multi <- function(df_prj,
                   by = c('div', 'deptid'))
       out_dept[is.na(out_dept)] <- 0
       names(out_dept) <- c('Div', 'Type', 'Title', 'b_1', 'b_2', 'b_3', 'hc', 'a_1', 'a_2', 'a_3')
-
+      
       if (nrow(out_dept) != 0){
         out_dept <- out_dept
       } else{

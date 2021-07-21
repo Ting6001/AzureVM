@@ -391,7 +391,16 @@ hr_cal_multi <- function(df_prj,
           filter(project_code == pcode)
         
         rate_tmp <- data.frame()
+        df_test <- data.frame()
         for (i in 1:nrow(proj_prop_tmp)){
+          # df_test <- df_all %>%
+          #   filter(project_code == proj_prop_tmp$project_code[i]) %>%
+          #   group_by(project_code, sub_job_family, date) %>%
+          #   summarise(total_hour_pro_func = sum(total_hour)) %>%
+          #   arrange(date) %>%
+          #   ungroup() %>%
+          #   mutate(add_hour = (total_hour_pro_func * proj_prop_tmp$hr_ratio[i]) / (proj_prop_tmp$mon_ratio[i]))
+
           df_proj_hour <- df_all %>%
             filter(project_code == proj_prop_tmp$project_code[i]) %>%
             group_by(project_code, sub_job_family, date) %>%
@@ -408,7 +417,9 @@ hr_cal_multi <- function(df_prj,
                                     n == 3 ~ max(ymd(df_all$date)),
                                     TRUE ~ ymd(date))) %>%
             select(-n)
-          
+          print('@@@@@@@@@@@@@@@@@@@@@ 111111111111111')
+          # print(df_test)
+          # return(df_proj_hour)
           rate_tmp1 <- df_dept_rate %>%
             left_join(hc_tmp,
                       by = c("div", "deptid", "sub_job_family")) %>%
@@ -426,6 +437,8 @@ hr_cal_multi <- function(df_prj,
           rate_tmp <- bind_rows(rate_tmp,
                                 rate_tmp1)
         }
+        print('@@@@@@@@@@@@@@@@@@@@@ 111111111111111')
+        return(rate_tmp)
         df_dept_rate_future <- bind_rows(df_dept_rate_future,
                                          rate_tmp) %>%
           group_by(div, date, deptid, sub_job_family) %>%
@@ -440,7 +453,9 @@ hr_cal_multi <- function(df_prj,
                     uti_rate_cal_dept = round(total_hour_by_dep_func_cal / (attendance_emp * emp_cnt + add_attendance_emp), 2)) %>%
           ungroup()
       }
-
+      print('@@@@@@@@@@@@@@@@@@@@@ 2222222222222222')
+      print(df_dept_rate_future)
+      return(df_dept_rate_future)
       ## Combine previous and future rate
       out_dept <- df_dept_rate %>%
         mutate(type = 'DEP') %>%
@@ -463,6 +478,8 @@ hr_cal_multi <- function(df_prj,
                   by = c('div', 'deptid'))
       out_dept[is.na(out_dept)] <- 0
       names(out_dept) <- c('Div', 'Type', 'Title', 'b_1', 'b_2', 'b_3', 'hc', 'a_1', 'a_2', 'a_3')
+      print('@@@@@@@@@@@@@@@@@@@@@ 333333333333')
+      print(out_dept)
 
       if (nrow(out_dept) != 0){
         out_dept <- out_dept

@@ -8,11 +8,13 @@ import time
 import numpy as np
 from tqdm import tqdm
 import sys, traceback
+from datetime import datetime
 start_begin = time.process_time()
 
 # Defining the R script and loading the instance in Python
 # robjects.r.source("./powerApp_func_v11.R")
-robjects.r.source("./powerApp_func_multi_v3.R")
+# robjects.r.source("./powerApp_func_multi_v3.R")
+robjects.r.source("./powerApp_func_multi_v3_test.r")
 
 # robjects.r.SayHi("John")
 
@@ -25,7 +27,7 @@ function_r = robjects.globalenv['hr_cal_multi']
 # df_prj = pd.read_csv("./data/df_prj.csv")
 # df_HC = pd.read_csv("./data/df_HC.csv")
 # df_util = pd.read_csv("./data/UtilizationRateInfo_3.csv")
-div = "23R000"
+div = "23D000"
 user = "001"
 
 path_file = './data/Utilization_Add1proj.xlsx'
@@ -35,20 +37,23 @@ df_allProj = pd.read_excel(path_file, engine='openpyxl')
 lst_div = ['23D000', '23M000', '23R000']
 
 with open ('./data/project_code.txt', 'r') as f:
-  lst_project_code = f.read().split('\n')
+  lst_project = f.read().split('\n')
+count_project = len(lst_project)
 
-count_project = len(lst_project_code)
-for i, project_code in enumerate(tqdm(['1PD00T550001'])):
-  # project_code = ""
+
+for i, project_code_name in enumerate(tqdm(['1PD05R550001,VT306-C'])):
+  project_code = project_code_name.split(',')[0]
+  project_name = project_code_name.split(',')[1]
+
   # if i+1 <= 25:
   #   continue
   start = time.process_time()
   lst_prj = [
       {
         "project_code": "1",
-        "project_name": "New Project A",
+        "project_name": "new project A",
         "project_code_old": project_code,
-        "project_name_old": "",
+        "project_name_old": project_name,
         "execute_hour": 0,
         "execute_month": 0
       }
@@ -102,20 +107,36 @@ for i, project_code in enumerate(tqdm(['1PD00T550001'])):
             
     # print('======== Function return ==========')
     dic_result = {}
-    if isinstance(df_result, pd.DataFrame):
-        df_result.fillna(0.0, inplace=True)
-        dic_result = df_result.to_dict('records')
-        # print(dic_result)
-        df_result['No'] = i+1
-        df_result['project_code'] = project_code
-        for j in range(1,4):
-          df_result['a_'+str(j)] = df_result['a_'+str(j)].apply(lambda x: x*100)
-          df_result['b_'+str(j)] = df_result['b_'+str(j)].apply(lambda x: x*100)
-        df_allProj = df_allProj.append(df_result)
+    # print(df_result)
+    
+    # df_result['date'] = df_result['date'].astype('datetime64[ns]')
+    
+    print(df_result.columns)
+    
+    print(type(df_result.iloc[0,1]), df_result.iloc[0,1])
+    # df_result['date'] = df_result['date'].apply(lambda x: pd.to_datetime(x,unit='D', origin='1970-1-1'))
+    df_result['date'] = df_result['date'].apply(lambda x: x.date)
+    df_result = df_result[df_result['date'] > datetime.strptime("2021-06-01", "%Y-%m-%d").date()]
+    df_result.sort_values(['sub_job_family','date'], inplace=True)
+    print(df_result)
+    # print(df_result)
+    df_result.to_excel('./data/test_rate_tmp_{}.xlsx'.format(project_code), index=False)
 
-    time_taken = round(time.process_time() - start,2)
-    print('Take:', time_taken, 's', i+1, project_code)
-    lst_time.append(time_taken)
+    # if isinstance(df_result, pd.DataFrame):
+    #     df_result.fillna(0.0, inplace=True)
+    #     dic_result = df_result.to_dict('records')
+    #     # print(dic_result)
+    #     df_result['No'] = i+1
+    #     df_result['project_code'] = project_code
+    #     df_result['project_name'] = project_name
+    #     for j in range(1,4):
+    #       df_result['a_'+str(j)] = df_result['a_'+str(j)].apply(lambda x: x*100)
+    #       df_result['b_'+str(j)] = df_result['b_'+str(j)].apply(lambda x: x*100)
+    #     df_allProj = df_allProj.append(df_result)
+
+    # time_taken = round(time.process_time() - start,2)
+    # print('Take:', time_taken, 's', i+1, project_code)
+    # lst_time.append(time_taken)
   except Exception as e:
     err_class = e.__class__.__name__ #取得錯誤類型
     detail = e.args[0] #取得詳細內容
@@ -130,11 +151,11 @@ for i, project_code in enumerate(tqdm(['1PD00T550001'])):
         print(err_msg)
     break
 
-time_total = round(time.process_time() - start_begin, 2)
-print('Total Time take:', time_total, 's')
-print(lst_time)
+# time_total = round(time.process_time() - start_begin, 2)
+# print('Total Time take:', time_total, 's')
+# print(lst_time)
 # print(df_allProj)
-df_allProj.to_excel(path_file, index=False)
+# df_allProj.to_excel(path_file, index=False)
 
 # print(lst_time)
 # print('average:', round(sum(lst_time)/len(lst_time), 3), 's')
