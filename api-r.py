@@ -8,12 +8,10 @@ from datetime import datetime
 import sys, traceback
 import pyodbc 
 
-
 # R
 import rpy2.robjects as robjects
 from rpy2.robjects import pandas2ri
 from rpy2.robjects.conversion import localconverter
-
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
@@ -21,8 +19,6 @@ api = Api(app)
 
 class WorkRate (Resource):
     parser = reqparse.RequestParser()
-    # parser.add_argument('email', required=True, help='Email is required')
-    # parser = parser.add_argument('lst', type=str, location='json', action="append")
     parser = parser.add_argument('division', type=str, required=True,  help='div is required')
     parser = parser.add_argument('user', type=str, required=True,  help='user is required')
     parser = parser.add_argument('data_Prj', type=dict, location='json', action="append", help='data Project info is required')
@@ -58,7 +54,7 @@ class WorkRate (Resource):
             print('div:', div)
             #################  先把code放進來 debug 用 ####################################################
             # robjects.r.source("./powerApp_func_v11.R")
-            robjects.r.source("./powerApp_func_multi_v4.R")
+            robjects.r.source("./powerApp_func_multi_v5.R")
             # function_r = robjects.globalenv['hr_cal']
             function_r = robjects.globalenv['hr_cal_multi']
 
@@ -135,6 +131,11 @@ class WorkRate (Resource):
         cursor.close()
         conn.close()
         
+class HelloWorld(Resource):
+    def get(self, name="world"):
+        return {'hello': name}
+
+api.add_resource(HelloWorld, '/','/hello/<string:name>')
 
 # api.add_resource(User, '/user/<string:name>')
 api.add_resource(WorkRate, '/workrate/')
