@@ -117,7 +117,7 @@ hr_cal_multi <- function(df_prj,
                     spread(date, uti_rate),
                   by = c('div', 'sub_job_family_2')) %>%
         left_join(head_count %>%
-                    select(-c(deptid, hc_pct)),
+                    select(-c(deptid, project_code, project_name)),
                   by = c("div", "sub_job_family_2")) %>%
         left_join(df_func_rate %>%
                     filter(date >= max(ymd(df_all$date)) %m-% months(2) & date <= max(ymd(df_all$date))) %>%
