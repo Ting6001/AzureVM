@@ -14,7 +14,7 @@ start_begin = time.process_time()
 # Defining the R script and loading the instance in Python
 # robjects.r.source("./powerApp_func_v11.R")
 # robjects.r.source("./powerApp_func_multi_v3.R")
-robjects.r.source("./powerApp_func_multi_v6.R")
+robjects.r.source("./powerApp_func_multi_v6_test.R")
 
 # robjects.r.SayHi("John")
 
@@ -41,11 +41,11 @@ with open ('./data/project_code.txt', 'r') as f:
 count_project = len(lst_project)
 
 
-for i, div in enumerate(tqdm(lst_div)): # 23D000、1PD05R550001,  23R000、1PD062550001
-  # project_code = project_code_name.split(',')[0]
-  # project_name = project_code_name.split(',')[1]
-  # execute_hour = float(project_code_name.split(',')[2]) * 1
-  # execute_month = float(project_code_name.split(',')[3]) * 1
+for i, project_code_name in enumerate(tqdm(['1PD062550001,QA618 JAWS,21498.20,3.17'])): # 23D000、1PD05R550001,  23R000、1PD062550001
+  project_code = project_code_name.split(',')[0]
+  project_name = project_code_name.split(',')[1]
+  execute_hour = float(project_code_name.split(',')[2]) * 1
+  execute_month = float(project_code_name.split(',')[3]) * 1
   # if i+1 <= 25:
   #   continue
   start = time.process_time()
@@ -58,14 +58,14 @@ for i, div in enumerate(tqdm(lst_div)): # 23D000、1PD05R550001,  23R000、1PD06
       #   "execute_hour": execute_hour,
       #   "execute_month": execute_month
       # },
-      # {
-      #   "project_code": "0",
-      #   "project_name": "new project B",
-      #   "project_code_old": project_code,
-      #   "project_name_old": project_name,
-      #   "execute_hour": execute_hour,
-      #   "execute_month": execute_month
-      # }
+      {
+        "project_code": "0",
+        "project_name": "new project B",
+        "project_code_old": project_code,
+        "project_name_old": project_name,
+        "execute_hour": execute_hour,
+        "execute_month": execute_month
+      }
     ]
   lst_HC = [
     # {
@@ -89,7 +89,7 @@ for i, div in enumerate(tqdm(lst_div)): # 23D000、1PD05R550001,  23R000、1PD06
     #   "user_id": "001"
     # }  
   ]
-  print({'division':div, 'df_prj':lst_prj, 'df_HC':lst_HC})
+  print({"user": "001", 'division':div, 'df_prj':lst_prj, 'df_HC':lst_HC})
   df_prj = pd.DataFrame(lst_prj)
   df_HC = pd.DataFrame(lst_HC)
   # print('===============================================')
@@ -136,54 +136,53 @@ for i, div in enumerate(tqdm(lst_div)): # 23D000、1PD05R550001,  23R000、1PD06
             
     # print('======== Function return ==========')
     dic_result = {}
-    # print(df_result)
-    
-    # df_result['date'] = df_result['date'].astype('datetime64[ns]')
-    
-    # f_name = './data/test/test_df_dept_rate_future_{}_Ratio_11_HC_11_prj_2.xlsx'.format(project_code)
+    # print(type(df_result))
+    print(df_result)
     # print(df_result.columns)
+    # df_result['date'] = df_result['date'].astype('datetime64[ns]')
+    f_name = './data/test/df_dept_rate_future_{}_Ratio_00.xlsx'.format(project_code)
     
-    # print('ori', type(df_result.at['1', 'date']), df_result.at['1', 'date'])
-    # # df_proj_hour date float
-    # if 'df_proj_hour' in f_name:
-    #   df_result['date'] = df_result['date'].apply(lambda x: pd.to_datetime(x,unit='D', origin='1970-1-1'))
-    #   print('pd.to_datetime(x)', type(df_result.at['1', 'date']), df_result.at['1', 'date'])
+    lst_sort = ['sub_job_family_2','date']
+    print('ori', type(df_result.at['1', 'date']), df_result.at['1', 'date'])
+    # df_proj_hour date float
+    if 'df_proj_hour' in f_name:
+      df_result['date'] = df_result['date'].apply(lambda x: pd.to_datetime(x,unit='D', origin='1970-1-1'))
+      df_result['add_hour'] = df_result['add_hour'].apply(lambda x: round(x,1))  
+      print('pd.to_datetime(x)', type(df_result.at['1', 'date']), df_result.at['1', 'date'])
 
-    # df_result['date'] = df_result['date'].apply(lambda x: x.date())
-    
-    # if 'rate_tmp' in f_name:
-    #   df_result['add_hour'] = df_result['add_hour'].apply(lambda x: round(x,1))  
-    #   df_result['uti_rate'] = df_result['uti_rate'].apply(lambda x: round(x,1))
-    #   df_result['add_hour_pct'] = df_result['add_hour_pct'].apply(lambda x: round(x,1))
-    #   df_result['total_hour_dept_func'] = df_result['total_hour_dept_func'].apply(lambda x: round(x,1))
-
-    # if 'df_dept_rate_future' in f_name:
-    #   df_result['total_hour_by_dep_func_cal'] = df_result['total_hour_by_dep_func_cal'].apply(lambda x: round(x,1))
-    #   df_result['add_hour_pct'] = df_result['add_hour_pct'].apply(lambda x: round(x,1))
-    #   df_result['total_hour_dept_func'] = df_result['total_hour_dept_func'].apply(lambda x: round(x,1))
-    
-    # print('x.date()', type(df_result.at['1', 'date']), df_result.at['1', 'date'])
-
-    # base_date = datetime.strptime("2021-08-01", "%Y-%m-%d").date()
-
+    df_result['date'] = df_result['date'].apply(lambda x: x.date())
+    print('x.date()', type(df_result.at['1', 'date']), df_result.at['1', 'date'])
+    base_date = datetime.strptime("2021-08-01", "%Y-%m-%d").date()
     # df_result = df_result[df_result['date'] > base_date]
+    
+    if 'rate_tmp' in f_name:
+      df_result['add_hour'] = df_result['add_hour'].apply(lambda x: round(x,1))  
+      df_result['uti_rate'] = df_result['uti_rate'].apply(lambda x: round(x,1))
+      df_result['add_hour_pct'] = df_result['add_hour_pct'].apply(lambda x: round(x,1))
+      df_result['total_hour_dept_func'] = df_result['total_hour_dept_func'].apply(lambda x: round(x,1))
 
-    # df_result.sort_values(['sub_job_family_2','date'], inplace=True)
-    # print(df_result)
-    # print(df_result)
-    # df_result.to_excel(path_file, index=False)
+    if 'df_dept_rate_future' in f_name:
+      df_result['total_hour_by_dep_func_cal'] = df_result['total_hour_by_dep_func_cal'].apply(lambda x: round(x,1))
+      df_result['add_hour_pct'] = df_result['add_hour_pct'].apply(lambda x: round(x,1))
+      df_result['total_hour_dept_func'] = df_result['total_hour_dept_func'].apply(lambda x: round(x,1))
+      lst_sort = ['date']
+    
+    df_result.sort_values(lst_sort, inplace=True)
+    
+    print(df_result)
+    df_result.to_excel(f_name, index=False)
 
-    if isinstance(df_result, pd.DataFrame):
-        df_result.fillna(0.0, inplace=True)
-        dic_result = df_result.to_dict('records')
-        # print(dic_result)
-        df_result['No'] = i+1
-        df_result['project_code'] = ''
-        # df_result['project_name'] = ''
-        for j in range(1,4):
-          df_result['a_'+str(j)] = df_result['a_'+str(j)].apply(lambda x: x*100)
-          df_result['b_'+str(j)] = df_result['b_'+str(j)].apply(lambda x: x*100)
-        df_allProj = df_allProj.append(df_result)
+    # if isinstance(df_result, pd.DataFrame):
+    #     df_result.fillna(0.0, inplace=True)
+    #     dic_result = df_result.to_dict('records')
+    #     # print(dic_result)
+    #     df_result['No'] = i+1
+    #     df_result['project_code'] = ''
+    #     # df_result['project_name'] = ''
+    #     for j in range(1,4):
+    #       df_result['a_'+str(j)] = df_result['a_'+str(j)].apply(lambda x: x*100)
+    #       df_result['b_'+str(j)] = df_result['b_'+str(j)].apply(lambda x: x*100)
+    #     df_allProj = df_allProj.append(df_result)
 
     # time_taken = round(time.process_time() - start,2)
     # print('Take:', time_taken, 's', i+1, project_code)

@@ -7,6 +7,7 @@ import time
 from datetime import datetime
 import sys, traceback
 import pyodbc 
+import socket
 
 # R
 import rpy2.robjects as robjects
@@ -16,8 +17,8 @@ from rpy2.robjects.conversion import localconverter
 app = Flask(__name__)
 app.config['DEBUG'] = True
 api = Api(app)
-# path_r = "./powerApp_func_multi_v6.R"                  # local
-path_r = "/home/mia06/AzureVM/powerApp_func_multi_v6.R"  # VM
+path_r = "./powerApp_func_multi_v6.R"                  # local
+# path_r = "/home/mia06/AzureVM/powerApp_func_multi_v6.R"  # VM
 
 class WorkRate (Resource):
     parser = reqparse.RequestParser()
@@ -144,4 +145,16 @@ api.add_resource(HelloWorld, '/','/hello/<string:name>')
 api.add_resource(WorkRate, '/workrate/')
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0') 
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    result = sock.connect_ex(('127.0.0.1',5000)) # 52.163.121.219
+    hostname = socket.gethostname()
+    local_ip = socket.gethostbyname(hostname)
+    print(local_ip)
+
+    if result == 0:
+        print ("Port is open")
+    else:
+        print ("Port is not open")
+        app.run(debug=True, host='0.0.0.0') 
+    sock.close()
+    
