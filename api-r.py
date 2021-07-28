@@ -16,6 +16,8 @@ from rpy2.robjects.conversion import localconverter
 app = Flask(__name__)
 app.config['DEBUG'] = True
 api = Api(app)
+# path_r = "./powerApp_func_multi_v6.R"                  # local
+path_r = "/home/mia06/AzureVM/powerApp_func_multi_v6.R"  # VM
 
 class WorkRate (Resource):
     parser = reqparse.RequestParser()
@@ -37,24 +39,18 @@ class WorkRate (Resource):
             div = arg['division']
             if arg['data_Prj']:
                 df_prj = pd.DataFrame(arg['data_Prj'])
-                # print('get data_Prj')
-                # print(arg['data_Prj'])
-                # print(df_prj)
                 # pandas DataFrame去除na，有na值的話，直接轉換會error
                 df_prj.fillna("", inplace=True)
                 df_prj = df_prj.astype({'project_code':str, 'project_code_old':str})
             if arg['data_HC']:   
                 df_HC = pd.DataFrame(arg['data_HC'])
-                # print('get data_HC')
-                # print(arg['data_HC'])
-                # print(df_HC)
                 # pandas DataFrame去除na，有na值的話，直接轉換會error
                 df_HC = df_HC.drop(['save_time', 'user_id'], axis=1)
                 df_HC = df_HC.astype({'div':str, 'deptid':str, 'project_code':str})
             try:
                 # print('div:', div)
                 #################  先把code放進來 debug 用 ####################################################
-                robjects.r.source("./powerApp_func_multi_v6.R")
+                robjects.r.source(path_r)
                 function_r = robjects.globalenv['hr_cal_multi']
 
                 # === 將 Pandas.df 轉換成 R df ===
