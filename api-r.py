@@ -17,8 +17,8 @@ from rpy2.robjects.conversion import localconverter
 app = Flask(__name__)
 app.config['DEBUG'] = True
 api = Api(app)
-path_r = "./powerApp_func_multi_v6.R"                  # local
-# path_r = "/home/mia06/AzureVM/powerApp_func_multi_v6.R"  # VM
+# path_r = "./powerApp_func_multi_v6.R"                  # local
+path_r = "/home/mia06/AzureVM/powerApp_func_multi_v6.R"  # VM
 
 class WorkRate (Resource):
     parser = reqparse.RequestParser()
