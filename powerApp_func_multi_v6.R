@@ -95,6 +95,8 @@ hr_cal_multi <- function(df_prj,
     arrange(date) %>%
     ungroup()
   
+  ## clean memory
+  gc()
   
 
   ###----- Calculate ------------------------------
@@ -151,6 +153,9 @@ hr_cal_multi <- function(df_prj,
                  a_3 = 0)
       }
       
+      ## clean memory
+      gc()
+      
       
       #--------------#
       #- Department -#
@@ -205,6 +210,9 @@ hr_cal_multi <- function(df_prj,
                  a_2 = 0, 
                  a_3 = 0)
       }
+      
+      ## clean memory
+      gc()
       
       
       #-----------------------------------#
@@ -357,6 +365,9 @@ hr_cal_multi <- function(df_prj,
                  a_3 = 0)
       }
       
+      ## clean memory
+      gc()
+      
       
       #--------------#
       #- Department -#
@@ -475,6 +486,9 @@ hr_cal_multi <- function(df_prj,
                  a_3 = 0)
       }
       
+      ## clean memory
+      gc()
+      
       
       #-----------------------------------#
       #- Combine Department and Function -#
@@ -483,5 +497,8 @@ hr_cal_multi <- function(df_prj,
                        out_func)
     }
     return(out)
+    
+    ## clean memory
+    gc()
   }
 }
