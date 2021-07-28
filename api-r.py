@@ -23,7 +23,6 @@ def check_port():
     print(local_ip)
     if result == 0:
         print ("Port is already open")
-        global b_port5000
         b_port5000 = True
     else:
         print ("Port is not open")
@@ -162,8 +161,7 @@ api.add_resource(HelloWorld, '/','/hello/<string:name>')
 api.add_resource(WorkRate, '/workrate/')
 
 if __name__ == '__main__':
-    b_port5000 = check_port()
-    if not b_port5000:
+    if not check_port():
         app.run(debug=True, host='0.0.0.0') 
     
     
