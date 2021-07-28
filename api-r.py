@@ -165,16 +165,14 @@ api.add_resource(WorkRate, '/workrate/')
 if __name__ == '__main__':
 # 檢查5000 port是否使用中，未使用才run
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    result = sock.connect_ex(('127.0.0.1',5000)) # 52.163.121.219
+    result = sock.connect_ex(('52.163.121.219',5000)) # 52.163.121.219
     hostname = socket.gethostname()
     local_ip = socket.gethostbyname(hostname)
     print(local_ip)
     if result == 0:
         print ("Port is already open")
-        b_port5000 = True
     else:
         print ("Port is not open")
-        b_port5000 = False
         app.run(debug=True, host='0.0.0.0') 
     sock.close()
     
