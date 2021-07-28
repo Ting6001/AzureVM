@@ -14,6 +14,23 @@ import rpy2.robjects as robjects
 from rpy2.robjects import pandas2ri
 from rpy2.robjects.conversion import localconverter
 
+# 檢查5000 port是否使用中，未使用才run
+def check_port():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    result = sock.connect_ex(('127.0.0.1',5000)) # 52.163.121.219
+    hostname = socket.gethostname()
+    local_ip = socket.gethostbyname(hostname)
+    print(local_ip)
+    if result == 0:
+        print ("Port is already open")
+        global b_port5000
+        b_port5000 = True
+    else:
+        print ("Port is not open")
+        b_port5000 = False
+    sock.close()
+    return b_port5000
+
 app = Flask(__name__)
 app.config['DEBUG'] = True
 api = Api(app)
@@ -145,16 +162,8 @@ api.add_resource(HelloWorld, '/','/hello/<string:name>')
 api.add_resource(WorkRate, '/workrate/')
 
 if __name__ == '__main__':
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    result = sock.connect_ex(('127.0.0.1',5000)) # 52.163.121.219
-    hostname = socket.gethostname()
-    local_ip = socket.gethostbyname(hostname)
-    print(local_ip)
-
-    if result == 0:
-        print ("Port is open")
-    else:
-        print ("Port is not open")
+    b_port5000 = check_port()
+    if not b_port5000:
         app.run(debug=True, host='0.0.0.0') 
-    sock.close()
+    
     
