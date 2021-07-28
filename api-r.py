@@ -30,7 +30,7 @@ class WorkRate (Resource):
         try:
             start = time.process_time()
             arg = self.parser.parse_args()
-            print(arg)     
+            # print(arg)     
             set_dep = set()
             set_sub = set()
             df_prj = pd.DataFrame()
@@ -54,31 +54,31 @@ class WorkRate (Resource):
                 function_r = robjects.globalenv['hr_cal_multi']
 
                 # === 將 Pandas.df 轉換成 R df ===
-                print('==== Transfer Pandas.df to R.df ====')
+                # print('==== Transfer Pandas.df to R.df ====')
                 with localconverter(robjects.default_converter + pandas2ri.converter):
                     df_prj_r = robjects.conversion.py2rpy(df_prj)
                     df_HC_r = robjects.conversion.py2rpy(df_HC)
         
                 # === 呼叫 R Function， return R df ===
-                print('==== Before R Functioin ====')
+                # print('==== Before R Functioin ====')
                 time_R_start = time.process_time()
 
                 df_result_r = function_r(df_prj_r, df_HC_r, div)
 
                 time_taken_R = round(time.process_time() - time_R_start,3)
-                print('==== Transfer R.df to Pandas.df ====')
+                # print('==== Transfer R.df to Pandas.df ====')
                 # === 將 R df 轉換成  Pandas.df ===
                 with localconverter(robjects.default_converter + pandas2ri.converter):
                     df_result = robjects.conversion.rpy2py(df_result_r)       
-                print('======== Function return ==========')
+                # print('======== Function return ==========')
                 dic_result = {}
                 if isinstance(df_result, pd.DataFrame):
                     df_result.fillna(0.0, inplace=True)
                     dic_result = df_result.to_dict('records')
-                    print(dic_result)
+                    # print(dic_result)
                 time_taken = round(time.process_time() - start,3)
-                print('Totally Take:', time_taken, 's,  R fuction:', time_taken_R, 's')
-                print('====================================================================================')
+                # print('Totally Take:', time_taken, 's,  R fuction:', time_taken_R, 's')
+                # print('====================================================================================')
                 return dic_result
             except Exception as e:
                 self.save_log(e, arg)
@@ -105,7 +105,7 @@ class WorkRate (Resource):
             funcName = CallStack[2] #取得發生的函數名稱
             err_msg += "\nFile \"{}\", line {}, in {}".format(fileName, lineNum, funcName)
 
-        print(err_msg)
+        # print(err_msg)
         data = (user_input, err_msg, save_time, user_id)
 
         conn, cursor = self.connect_db()
@@ -123,14 +123,14 @@ class WorkRate (Resource):
         # driver = '{ODBC Driver 17 for SQL Server}'
         # driver = '{SQL Server Native Client 11.0}'
         drivers = [item for item in pyodbc.drivers()] # ['SQL Server', 'SQL Server Native Client 11.0', 'ODBC Driver 11 for SQL Server']
-        print('drivers:', drivers)
+        # print('drivers:', drivers)
         driver = drivers[-1]
         conn = pyodbc.connect('DRIVER='+driver+';SERVER='+server+';DATABASE='+database+';UID='+username+';PWD='+ password)
         cursor = conn.cursor()
-        print('Connect to DB')
+        # print('Connect to DB')
         return conn, cursor
     def close_db(self, conn, cursor):
-        print('Close DB Connection')
+        # print('Close DB Connection')
         cursor.close()
         conn.close()
         

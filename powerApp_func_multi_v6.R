@@ -101,7 +101,7 @@ hr_cal_multi <- function(df_prj,
 
   ###----- Calculate ------------------------------
   if (length(setdiff(df_prj$project_code_old, df_proj$project_code)) != 0){
-    print('Invalid project code!!')
+    # print('Invalid project code!!')
   } else {
     if (sum(dim(df_prj)) == 0){
       #------------#
