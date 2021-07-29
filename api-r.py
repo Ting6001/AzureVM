@@ -19,8 +19,8 @@ from rpy2.robjects.conversion import localconverter
 app = Flask(__name__)
 app.config['DEBUG'] = True
 api = Api(app)
-# path_r = "./powerApp_func_multi_v6.R"                  # local
-path_r = "/home/mia06/AzureVM/powerApp_func_multi_v6.R"  # VM
+path_r = "./powerApp_func_multi_v6.R"                  # local
+# path_r = "/home/mia06/AzureVM/powerApp_func_multi_v6.R"  # VM
 
 class WorkRate (Resource):
     parser = reqparse.RequestParser()
@@ -164,15 +164,17 @@ api.add_resource(WorkRate, '/workrate/')
 
 if __name__ == '__main__':
 # 檢查5000 port是否使用中，未使用才run
+    cur_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    port = 5000
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    result = sock.connect_ex(('127.0.0.1',5000)) # 52.163.121.219
+    result = sock.connect_ex(('127.0.0.1',port)) # 52.163.121.219
     hostname = socket.gethostname()
     local_ip = socket.gethostbyname(hostname)
-    print(local_ip)
+    print('【'+ cur_time + '】')
     if result == 0:
-        print ("Port is already open")
+        print (local_ip + ", Port {} is already open".format(port))
     else:
-        print ("Port is not open")
+        print (local_ip + ", Port {} is not open".format(port))
         app.run(host='0.0.0.0', debug=True, use_reloader=False) 
     sock.close()
     
