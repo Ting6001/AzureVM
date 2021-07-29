@@ -158,10 +158,11 @@ if __name__ == '__main__':
     msg = '【'+ cur_time + '】'
     # global root
     # global path_r
+    path_log = root + '/api_local.log'
     if local_ip == '10.0.0.6': # VM
         root = '/home/mia06/AzureVM/'
         path_r = root + "powerApp_func_multi_v6.R"
-    path_log = root + '/api.log'
+        path_log = '/home/mia06/api.log'
 
     if result == 0:
         msg += (local_ip + ", Port {} is already open\n".format(port))
