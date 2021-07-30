@@ -94,12 +94,16 @@ hr_cal_multi <- function(df_prj,
               attendance_emp = mean(attendance)) %>%
     arrange(date) %>%
     ungroup()
-  
+  print('@@@@@@@@@@@@@@@ 00000000000000000')
+  # print(df_dept_rate)
+  # return(df_dept_rate)
+  ## clean memory
+  gc()
   
 
   ###----- Calculate ------------------------------
   if (length(setdiff(df_prj$project_code_old, df_proj$project_code)) != 0){
-    print('@@@@@@@@@@@@@@ Invalid project code!!')
+    print('Invalid project code!!')
   } else {
     if (sum(dim(df_prj)) == 0){
       #------------#
@@ -124,6 +128,7 @@ hr_cal_multi <- function(df_prj,
                     left_join(head_count %>%
                                 select(-c(deptid, project_code, project_name)),
                               by = c("div", "sub_job_family_2")) %>%
+                    replace_na(list(hc = 0)) %>%
                     mutate(uti_rate_cal = total_hour_func / (attendance_func + attendance_emp * hc)) %>%
                     select(div, sub_job_family_2, date, uti_rate_cal) %>%
                     mutate(uti_rate_cal = round(uti_rate_cal, 2)) %>%
@@ -150,6 +155,9 @@ hr_cal_multi <- function(df_prj,
                  a_2 = 0, 
                  a_3 = 0)
       }
+      
+      ## clean memory
+      gc()
       
       
       #--------------#
@@ -205,6 +213,9 @@ hr_cal_multi <- function(df_prj,
                  a_2 = 0, 
                  a_3 = 0)
       }
+      
+      ## clean memory
+      gc()
       
       
       #-----------------------------------#
@@ -357,6 +368,9 @@ hr_cal_multi <- function(df_prj,
                  a_3 = 0)
       }
       
+      ## clean memory
+      gc()
+      
       
       #--------------#
       #- Department -#
@@ -481,6 +495,9 @@ hr_cal_multi <- function(df_prj,
                  a_3 = 0)
       }
       
+      ## clean memory
+      gc()
+      
       
       #-----------------------------------#
       #- Combine Department and Function -#
@@ -489,5 +506,8 @@ hr_cal_multi <- function(df_prj,
                        out_func)
     }
     return(out)
+    
+    ## clean memory
+    gc()
   }
 }

@@ -101,7 +101,7 @@ hr_cal_multi <- function(df_prj,
 
   ###----- Calculate ------------------------------
   if (length(setdiff(df_prj$project_code_old, df_proj$project_code)) != 0){
-    # print('Invalid project code!!')
+    print('Invalid project code!!')
   } else {
     if (sum(dim(df_prj)) == 0){
       #------------#
@@ -126,6 +126,7 @@ hr_cal_multi <- function(df_prj,
                     left_join(head_count %>%
                                 select(-c(deptid, project_code, project_name)),
                               by = c("div", "sub_job_family_2")) %>%
+                    replace_na(list(hc = 0)) %>%
                     mutate(uti_rate_cal = total_hour_func / (attendance_func + attendance_emp * hc)) %>%
                     select(div, sub_job_family_2, date, uti_rate_cal) %>%
                     mutate(uti_rate_cal = round(uti_rate_cal, 2)) %>%
