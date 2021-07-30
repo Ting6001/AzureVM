@@ -27,7 +27,7 @@ function_r = robjects.globalenv['hr_cal_multi']
 # df_prj = pd.read_csv("./data/df_prj.csv")
 # df_HC = pd.read_csv("./data/df_HC.csv")
 # df_util = pd.read_csv("./data/UtilizationRateInfo_3.csv")
-div = "23M000"
+div = "23R000"
 user = "001"
 
 path_file = './data/Utilization_Add1proj.xlsx'
@@ -41,8 +41,7 @@ with open ('./data/project_code.txt', 'r') as f:
 count_project = len(lst_project)
 
 
-# '1PD062550001,QA618 JAWS,21498.20,3.17'
-for i, project_code_name in enumerate(tqdm(['QRQY00014841,R-RFQ(NEW PRODUCT MARKETING),349.33,1.77'])): # 23D000、1PD05R550001,  23R000、1PD062550001,1RDZ12280001
+for i, project_code_name in enumerate(tqdm(['1PD062550001,QA618 JAWS,21498.20,3.17'])): # 23D000、1PD05R550001,  23R000、1PD062550001
   project_code = project_code_name.split(',')[0]
   project_name = project_code_name.split(',')[1]
   execute_hour = float(project_code_name.split(',')[2]) * 1
@@ -59,14 +58,14 @@ for i, project_code_name in enumerate(tqdm(['QRQY00014841,R-RFQ(NEW PRODUCT MARK
       #   "execute_hour": execute_hour,
       #   "execute_month": execute_month
       # },
-      {
-        "project_code": "0",
-        "project_name": "new project B",
-        "project_code_old": project_code,
-        "project_name_old": project_name,
-        "execute_hour": execute_hour,
-        "execute_month": execute_month
-      }
+      # {
+      #   "project_code": "0",
+      #   "project_name": "new project B",
+      #   "project_code_old": project_code,
+      #   "project_name_old": project_name,
+      #   "execute_hour": execute_hour,
+      #   "execute_month": execute_month
+      # }
     ]
   lst_HC = [
     # {
@@ -79,16 +78,16 @@ for i, project_code_name in enumerate(tqdm(['QRQY00014841,R-RFQ(NEW PRODUCT MARK
     #   "save_time": "2021/7/6 下午05:15",
     #   "user_id": "001"
     # },
-    # {
-    #   "HC": 1,
-    #   "div": div,
-    #   "deptid": "23R200",
-    #   "project_code": "",
-    #   "project_name": "",
-    #   "sub_job_family": "HW",
-    #   "save_time": "2021/7/6 下午05:15",
-    #   "user_id": "001"
-    # }  
+    {
+      "HC": 1,
+      "div": div,
+      "deptid": "23R200",
+      "project_code": "",
+      "project_name": "",
+      "sub_job_family": "HW",
+      "save_time": "2021/7/6 下午05:15",
+      "user_id": "001"
+    }  
   ]
   print({"user": "001", 'division':div, 'df_prj':lst_prj, 'df_HC':lst_HC})
   df_prj = pd.DataFrame(lst_prj)

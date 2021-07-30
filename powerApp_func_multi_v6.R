@@ -66,7 +66,9 @@ hr_cal_multi <- function(df_prj,
     head_count <- df_hc %>%
       mutate(HC = as.numeric(HC),
              ## When sub job family is ('AR', 'HW', 'OP', 'RF', 'RX') replace by 'RH'
-             sub_job_family_2 = ifelse(sub_job_family %in% c('AR', 'HW', 'OP', 'RF', 'RX'), 'RH', sub_job_family)) %>%
+             sub_job_family_2 = case_when(sub_job_family %in% c('AR', 'HW', 'OP', 'RF', 'RX') ~ 'RH',
+                                          sub_job_family == 'PV' ~ 'E4', 
+                                          TRUE ~ sub_job_family)) %>%
       group_by(div, deptid, project_code, project_name, sub_job_family_2) %>%
       summarise(hc = sum(HC)) %>%
       ungroup()

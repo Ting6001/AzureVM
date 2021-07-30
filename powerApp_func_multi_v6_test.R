@@ -66,7 +66,9 @@ hr_cal_multi <- function(df_prj,
     head_count <- df_hc %>%
       mutate(HC = as.numeric(HC),
              ## When sub job family is ('AR', 'HW', 'OP', 'RF', 'RX') replace by 'RH'
-             sub_job_family_2 = ifelse(sub_job_family %in% c('AR', 'HW', 'OP', 'RF', 'RX'), 'RH', sub_job_family)) %>%
+             sub_job_family_2 = case_when(sub_job_family %in% c('AR', 'HW', 'OP', 'RF', 'RX') ~ 'RH',
+                                          sub_job_family == 'PV' ~ 'E4', 
+                                          TRUE ~ sub_job_family)) %>%
       group_by(div, deptid, project_code, project_name, sub_job_family_2) %>%
       summarise(hc = sum(HC)) %>%
       ungroup()
@@ -409,9 +411,9 @@ hr_cal_multi <- function(df_prj,
                                     n == 3 ~ max(ymd(df_all$date)),
                                     TRUE ~ ymd(date))) %>%
             select(-n)
-          print('@@@@@@@@@@@@@@@@@@@@@ 111111111111111')
+          print('@@@@@@@@@@@@@@@ 111111111111111')
           # print(df_proj_hour)
-          # return(df_proj_hour)
+          return(df_proj_hour)
           rate_tmp1 <- df_dept_rate %>%
             left_join(hc_tmp,
                       by = c("div", "deptid", "sub_job_family_2")) %>%
@@ -433,7 +435,7 @@ hr_cal_multi <- function(df_prj,
           rate_tmp <- bind_rows(rate_tmp,
                                 rate_tmp1)
         }
-        print('@@@@@@@@@@@@@@@@@@@@@ 22222222222222222')
+        print('@@@@@@@@@@@@@@@ 22222222222222222')
         # print(rate_tmp)
         # return(rate_tmp)
         df_dept_rate_future <- bind_rows(df_dept_rate_future,
@@ -450,7 +452,7 @@ hr_cal_multi <- function(df_prj,
                     uti_rate_cal_dept = round(total_hour_by_dep_func_cal / (attendance_emp * emp_cnt + add_attendance_emp), 2)) %>%
           ungroup()
       }
-      print('@@@@@@@@@@@@@@@@@@@@@ 33333333333333333333')
+      print('@@@@@@@@@@@@@@@ 33333333333333333333')
       # print(df_dept_rate_future)
       return(df_dept_rate_future)
       ## Combine previous and future rate
