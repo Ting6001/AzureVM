@@ -78,6 +78,7 @@ hr_cal_multi <- function(df_prj,
   
   ## utilization rate by function
   df_func_rate <- df %>%
+    filter(date >= max(ymd(df_all$date)) %m-% months(5)) %>%
     group_by(div, sub_job_family_2, date) %>%
     summarise(uti_rate = mean(utilization_rate_by_div_func),
               total_hour_func = sum(total_hour),
@@ -89,6 +90,7 @@ hr_cal_multi <- function(df_prj,
   
   ## utilization rate by department
   df_dept_rate <- df %>%
+    filter(date >= max(ymd(df_all$date)) %m-% months(5)) %>%
     group_by(div, deptid, sub_job_family_2, date) %>%
     summarise(uti_rate = mean(utilization_rate_by_dep),
               total_hour_dept_func = sum(total_hour),
