@@ -33,7 +33,7 @@ class WorkRate (Resource):
         try:
             start = time.process_time()
             arg = self.parser.parse_args()
-            print(arg)     
+            # print(arg)     
             set_dep = set()
             set_sub = set()
             df_prj = pd.DataFrame()
