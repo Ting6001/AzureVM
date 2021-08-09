@@ -33,7 +33,7 @@ class WorkRate (Resource):
         try:
             start = time.process_time()
             arg = self.parser.parse_args()
-            print(arg)     
+            # print(arg)     
             set_dep = set()
             set_sub = set()
             df_prj = pd.DataFrame()
@@ -78,7 +78,7 @@ class WorkRate (Resource):
                 if isinstance(df_result, pd.DataFrame):
                     df_result.fillna(0.0, inplace=True)
                     dic_result = df_result.to_dict('records')
-                    print(df_result)
+                    # print(df_result)
                 time_taken = round(time.process_time() - start,3)
                 # print('Totally Take:', time_taken, 's,  R fuction:', time_taken_R, 's')
                 # print('====================================================================================')
