@@ -20,7 +20,7 @@ app = Flask(__name__)
 app.config['DEBUG'] = True
 api = Api(app)
 root = './' # local
-path_r = root + 'powerApp_func_multi_v6.R'                
+path_r = root + 'powerApp_func_multi_v7.R'                
 
 class WorkRate (Resource):
     parser = reqparse.RequestParser()
@@ -160,7 +160,7 @@ if __name__ == '__main__':
     path_log = root + '/api_local.log'
     if local_ip == '10.0.0.6': # VM
         root = '/home/mia06/AzureVM/'
-        path_r = root + "powerApp_func_multi_v6.R"
+        path_r = root + "powerApp_func_multi_v7.R"
         path_log = '/home/mia06/api.log'
 
     if result == 0:

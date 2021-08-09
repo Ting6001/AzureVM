@@ -273,6 +273,13 @@ hr_cal_multi <- function(df_prj,
           hc_tmp <- data.frame(div = NA, project_code = NA, project_name = NA, sub_job_family_2 = NA, hc = NA)
         }
         
+        ## new project start date percentage
+        df_prj_pct <- df_prj %>%
+          filter(project_name == newname) %>%
+          select(project_code, project_name, project_code_old, start_date) %>%
+          mutate(start_date = as.Date(start_date),
+                 start_mth_pct = 1 - (day(start_date) / days_in_month(start_date)),
+                 start_ym = floor_date(as.Date(start_date), unit = 'month'))
         
         proj_prop_tmp <- proj_prop %>%
           filter(project_code == pcode) %>%
@@ -295,7 +302,14 @@ hr_cal_multi <- function(df_prj,
                                     n == 2 ~ max(ymd(df_all$date)) %m-% months(1),
                                     n == 3 ~ max(ymd(df_all$date)),
                                     TRUE ~ ymd(date))) %>%
-            select(-n)
+            select(-n) %>%
+            left_join(df_prj_pct %>%
+                        select(project_code_old, start_ym, start_mth_pct, start_date),
+                      c('project_code' = 'project_code_old', 'date' = 'start_ym')) %>%
+            replace_na(list(start_mth_pct = 0,
+                            start_date = df_prj_pct$start_date)) %>%
+            mutate(start_mth_pct = ifelse(date >= start_date, 1, start_mth_pct),
+                   add_hour_adj = add_hour * start_mth_pct)
           
           rate_tmp1 <- df_func_rate %>%
             left_join(hc_tmp,
@@ -308,7 +322,7 @@ hr_cal_multi <- function(df_prj,
             distinct() %>%
             group_by(div, date, sub_job_family_2) %>%
             mutate(emp_pct = emp / sum(emp),
-                   add_hour_pct = add_hour * emp_pct,
+                   add_hour_pct = add_hour_adj * emp_pct,
                    add_attendance_emp = (attendance_emp * hc)) %>%
             ungroup()
           
@@ -388,6 +402,13 @@ hr_cal_multi <- function(df_prj,
           hc_tmp <- data.frame(div = NA, deptid = NA, project_code = NA, project_name = NA, sub_job_family_2 = NA, hc = NA, hc_pct = NA)
         }
         
+        ## new project start date percentage
+        df_prj_pct <- df_prj %>%
+          filter(project_name == newname) %>%
+          select(project_code, project_name, project_code_old, start_date) %>%
+          mutate(start_date = as.Date(start_date),
+                 start_mth_pct = 1 - (day(start_date) / days_in_month(start_date)),
+                 start_ym = floor_date(as.Date(start_date), unit = 'month'))
         
         proj_prop_tmp <- proj_prop %>%
           filter(project_code == pcode) %>%
@@ -410,7 +431,14 @@ hr_cal_multi <- function(df_prj,
                                     n == 2 ~ max(ymd(df_all$date)) %m-% months(1),
                                     n == 3 ~ max(ymd(df_all$date)),
                                     TRUE ~ ymd(date))) %>%
-            select(-n)
+            select(-n) %>%
+            left_join(df_prj_pct %>%
+                        select(project_code_old, start_ym, start_mth_pct, start_date),
+                      c('project_code' = 'project_code_old', 'date' = 'start_ym')) %>%
+            replace_na(list(start_mth_pct = 0,
+                            start_date = df_prj_pct$start_date)) %>%
+            mutate(start_mth_pct = ifelse(date >= start_date, 1, start_mth_pct),
+                   add_hour_adj = add_hour * start_mth_pct)
           
           rate_tmp1 <- df_dept_rate %>%
             left_join(hc_tmp,
@@ -425,7 +453,7 @@ hr_cal_multi <- function(df_prj,
             mutate(emp_pct = emp / sum(emp)) %>%
             ungroup() %>%
             group_by(div, date, deptid, sub_job_family_2) %>%
-            mutate(add_hour_pct = add_hour * emp_pct,
+            mutate(add_hour_pct = add_hour_adj * emp_pct,
                    add_attendance_emp = (attendance_emp * hc)) %>%
             ungroup() %>%
             distinct()

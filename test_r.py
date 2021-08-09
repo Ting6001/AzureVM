@@ -14,7 +14,7 @@ start_begin = time.process_time()
 # Defining the R script and loading the instance in Python
 # robjects.r.source("./powerApp_func_v11.R")
 # robjects.r.source("./powerApp_func_multi_v3.R")
-robjects.r.source("./powerApp_func_multi_v6_test.R")
+robjects.r.source("./powerApp_func_multi_v7_test.R")
 
 # robjects.r.SayHi("John")
 
@@ -27,7 +27,7 @@ function_r = robjects.globalenv['hr_cal_multi']
 # df_prj = pd.read_csv("./data/df_prj.csv")
 # df_HC = pd.read_csv("./data/df_HC.csv")
 # df_util = pd.read_csv("./data/UtilizationRateInfo_3.csv")
-div = "23M000"
+div = "23R000"
 user = "001"
 
 path_file = './data/Utilization_Add1proj.xlsx'
@@ -42,7 +42,7 @@ count_project = len(lst_project)
 
 
 # '1PD062550001,QA618 JAWS,21498.20,3.17'
-for i, project_code_name in enumerate(tqdm(['QRQY00014841,R-RFQ(NEW PRODUCT MARKETING),349.33,1.77'])): # 23D000、1PD05R550001,  23R000、1PD062550001,1RDZ12280001
+for i, project_code_name in enumerate(tqdm(['1PD062550001,QA618 JAWS,37529.36,3.87'])): # 23D000、1PD05R550001,  23R000、1PD062550001,1RDZ12280001
   project_code = project_code_name.split(',')[0]
   project_name = project_code_name.split(',')[1]
   execute_hour = float(project_code_name.split(',')[2]) * 1
@@ -65,7 +65,8 @@ for i, project_code_name in enumerate(tqdm(['QRQY00014841,R-RFQ(NEW PRODUCT MARK
         "project_code_old": project_code,
         "project_name_old": project_name,
         "execute_hour": execute_hour,
-        "execute_month": execute_month
+        "execute_month": execute_month,
+         "start_date": "2021/9/9"
       }
     ]
   lst_HC = [
@@ -141,34 +142,36 @@ for i, project_code_name in enumerate(tqdm(['QRQY00014841,R-RFQ(NEW PRODUCT MARK
     print(df_result)
     # print(df_result.columns)
     # df_result['date'] = df_result['date'].astype('datetime64[ns]')
-    f_name = './data/test/df_{}_proj_0_Ratio_00_HC_1.xlsx'.format(project_code)
+    f_name = './data/test/__0909__df_proj_hour_{}_proj_1_Ratio_00_HC_0.xlsx'.format(project_code)
     
-    # lst_sort = ['sub_job_family_2','date']
-    # print('ori', type(df_result.at['1', 'date']), df_result.at['1', 'date'])
-    # # df_proj_hour date float
-    # if 'df_proj_hour' in f_name:
-    #   df_result['date'] = df_result['date'].apply(lambda x: pd.to_datetime(x,unit='D', origin='1970-1-1'))
-    #   df_result['add_hour'] = df_result['add_hour'].apply(lambda x: round(x,1))  
-    #   print('pd.to_datetime(x)', type(df_result.at['1', 'date']), df_result.at['1', 'date'])
+    lst_sort = ['sub_job_family_2','date']
+    print('ori', type(df_result.at['1', 'date']), df_result.at['1', 'date'])
+    # df_proj_hour date float
+    if 'df_proj_hour' in f_name:
+      df_result['date'] = df_result['date'].apply(lambda x: pd.to_datetime(x,unit='D', origin='1970-1-1'))
+      df_result['start_date'] = df_result['start_date'].apply(lambda x: pd.to_datetime(x,unit='D', origin='1970-1-1'))
+      df_result['add_hour'] = df_result['add_hour'].apply(lambda x: round(x,1))  
+      print('pd.to_datetime(x)', type(df_result.at['1', 'date']), df_result.at['1', 'date'])
 
-    # df_result['date'] = df_result['date'].apply(lambda x: x.date())
-    # print('x.date()', type(df_result.at['1', 'date']), df_result.at['1', 'date'])
-    # base_date = datetime.strptime("2021-08-01", "%Y-%m-%d").date()
-    # # df_result = df_result[df_result['date'] > base_date]
+    df_result['date'] = df_result['date'].apply(lambda x: x.date())
+    print('x.date()', type(df_result.at['1', 'date']), df_result.at['1', 'date'])
+    base_date = datetime.strptime("2021-08-01", "%Y-%m-%d").date()
+    # df_result = df_result[df_result['date'] > base_date]
     
-    # if 'rate_tmp' in f_name:
-    #   df_result['add_hour'] = df_result['add_hour'].apply(lambda x: round(x,1))  
-    #   df_result['uti_rate'] = df_result['uti_rate'].apply(lambda x: round(x,1))
-    #   df_result['add_hour_pct'] = df_result['add_hour_pct'].apply(lambda x: round(x,1))
-    #   df_result['total_hour_dept_func'] = df_result['total_hour_dept_func'].apply(lambda x: round(x,1))
+    if 'rate_tmp' in f_name:
+      df_result['start_date'] = df_result['start_date'].apply(lambda x: pd.to_datetime(x,unit='D', origin='1970-1-1'))
+      df_result['add_hour'] = df_result['add_hour'].apply(lambda x: round(x,1))  
+      df_result['uti_rate'] = df_result['uti_rate'].apply(lambda x: round(x,1))
+      df_result['add_hour_pct'] = df_result['add_hour_pct'].apply(lambda x: round(x,1))
+      df_result['total_hour_dept_func'] = df_result['total_hour_dept_func'].apply(lambda x: round(x,1))
 
-    # if 'df_dept_rate_future' in f_name:
-    #   df_result['total_hour_by_dep_func_cal'] = df_result['total_hour_by_dep_func_cal'].apply(lambda x: round(x,1))
-    #   df_result['add_hour_pct'] = df_result['add_hour_pct'].apply(lambda x: round(x,1))
-    #   df_result['total_hour_dept_func'] = df_result['total_hour_dept_func'].apply(lambda x: round(x,1))
-    #   lst_sort = ['date']
+    if 'df_dept_rate_future' in f_name:
+      df_result['total_hour_by_dep_func_cal'] = df_result['total_hour_by_dep_func_cal'].apply(lambda x: round(x,1))
+      df_result['add_hour_pct'] = df_result['add_hour_pct'].apply(lambda x: round(x,1))
+      df_result['total_hour_dept_func'] = df_result['total_hour_dept_func'].apply(lambda x: round(x,1))
+      lst_sort = ['date']
     
-    # df_result.sort_values(lst_sort, inplace=True)
+    df_result.sort_values(lst_sort, inplace=True)
     
     # print(df_result)
     df_result.to_excel(f_name, index=False)
