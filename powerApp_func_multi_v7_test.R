@@ -443,7 +443,7 @@ hr_cal_multi <- function(df_prj,
                    add_hour_adj = add_hour * start_mth_pct)
           print('@@@@@@@@@@@@@@@ 111111111111111')
           # print(df_proj_hour)
-          return(df_proj_hour)
+          # return(df_proj_hour)
 
           rate_tmp1 <- df_dept_rate %>%
             left_join(hc_tmp,
@@ -468,7 +468,7 @@ hr_cal_multi <- function(df_prj,
         }
         print('@@@@@@@@@@@@@@@ 22222222222222222')
         # print(rate_tmp)
-        return(rate_tmp)
+        # return(rate_tmp)
         df_dept_rate_future <- bind_rows(df_dept_rate_future,
                                          rate_tmp) %>%
           group_by(div, date, deptid) %>%
@@ -485,7 +485,7 @@ hr_cal_multi <- function(df_prj,
       }
       print('@@@@@@@@@@@@@@@ 33333333333333333333')
       print(df_dept_rate_future)
-      return(df_dept_rate_future)
+      # return(df_dept_rate_future)
       ## Combine previous and future rate
       out_dept <- df_dept_rate %>%
         mutate(type = 'DEP') %>%

@@ -66,7 +66,7 @@ for i, project_code_name in enumerate(tqdm(['1PD062550001,QA618 JAWS,37529.36,3.
         "project_name_old": project_name,
         "execute_hour": execute_hour,
         "execute_month": execute_month,
-         "start_date": "2021/9/9"
+         "start_date": "2021/8/1"
       }
     ]
   lst_HC = [
@@ -142,10 +142,10 @@ for i, project_code_name in enumerate(tqdm(['1PD062550001,QA618 JAWS,37529.36,3.
     print(df_result)
     # print(df_result.columns)
     # df_result['date'] = df_result['date'].astype('datetime64[ns]')
-    f_name = './data/test/__0909__df_proj_hour_{}_proj_1_Ratio_00_HC_0.xlsx'.format(project_code)
+    f_name = './data/test/__output_{}_proj_1_Ratio_00_HC_0.xlsx'.format(project_code)
     
     lst_sort = ['sub_job_family_2','date']
-    print('ori', type(df_result.at['1', 'date']), df_result.at['1', 'date'])
+    # print('ori', type(df_result.at['1', 'date']), df_result.at['1', 'date'])
     # df_proj_hour date float
     if 'df_proj_hour' in f_name:
       df_result['date'] = df_result['date'].apply(lambda x: pd.to_datetime(x,unit='D', origin='1970-1-1'))
@@ -153,10 +153,10 @@ for i, project_code_name in enumerate(tqdm(['1PD062550001,QA618 JAWS,37529.36,3.
       df_result['add_hour'] = df_result['add_hour'].apply(lambda x: round(x,1))  
       print('pd.to_datetime(x)', type(df_result.at['1', 'date']), df_result.at['1', 'date'])
 
-    df_result['date'] = df_result['date'].apply(lambda x: x.date())
-    print('x.date()', type(df_result.at['1', 'date']), df_result.at['1', 'date'])
-    base_date = datetime.strptime("2021-08-01", "%Y-%m-%d").date()
-    # df_result = df_result[df_result['date'] > base_date]
+    # df_result['date'] = df_result['date'].apply(lambda x: x.date())
+    # print('x.date()', type(df_result.at['1', 'date']), df_result.at['1', 'date'])
+    # base_date = datetime.strptime("2021-08-01", "%Y-%m-%d").date()
+    # # df_result = df_result[df_result['date'] > base_date]
     
     if 'rate_tmp' in f_name:
       df_result['start_date'] = df_result['start_date'].apply(lambda x: pd.to_datetime(x,unit='D', origin='1970-1-1'))
@@ -171,7 +171,7 @@ for i, project_code_name in enumerate(tqdm(['1PD062550001,QA618 JAWS,37529.36,3.
       df_result['total_hour_dept_func'] = df_result['total_hour_dept_func'].apply(lambda x: round(x,1))
       lst_sort = ['date']
     
-    df_result.sort_values(lst_sort, inplace=True)
+    # df_result.sort_values(lst_sort, inplace=True)
     
     # print(df_result)
     df_result.to_excel(f_name, index=False)
