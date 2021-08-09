@@ -31,10 +31,9 @@ class WorkRate (Resource):
 
     def post(self): # create
         try:
-            print('@@@@@@@@@@@@@@@@@@@@@@@@')
             start = time.process_time()
             arg = self.parser.parse_args()
-            print(arg)     
+            # print(arg)     
             set_dep = set()
             set_sub = set()
             df_prj = pd.DataFrame()
@@ -97,8 +96,6 @@ class WorkRate (Resource):
             user_id = arg['user']
             user_input = str(arg)
         save_time = datetime.now()
-        print('@',e)
-        print('@',e.args)
         err_class = e.__class__.__name__ #取得錯誤類型
         detail = e.args[0] #取得詳細內容
         cl, exc, tb = sys.exc_info() #取得Call Stack
